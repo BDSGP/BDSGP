@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDSGP - Minecraft服务器列表</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="icon" href="./favicon.png" type="image/x-icon">
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-cube"></i>
+            <span>BDSGP</span>
+        </div>
+        <div class="nav-links">
+            <a href="#"><i class="fas fa-home"></i> 首页</a>
+            <a href="#"><i class="fas fa-server"></i> 服务器列表</a>
+            <a href="#"><i class="fas fa-info-circle"></i> 关于我们</a>
+            <a href="#"><i class="fas fa-envelope"></i> 联系我们</a>
+        </div>
+        <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button class="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-logo">
+                <i class="fas fa-cubes"></i>
+            </div>
+            <h1>探索最佳Minecraft服务器</h1>
+            <p>发现并加入最适合您的Minecraft基岩版服务器，体验多人游戏的乐趣！</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-primary">
+                    <i class="fas fa-play"></i> 快速加入
+                </a>
+                <a href="#" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> 浏览服务器
+                </a>
+                <a href="#" class="btn btn-secondary">
+                    <i class="fas fa-plus"></i> 添加服务器
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主内容区域 -->
+    <main>
+        <div class="section-title">
+            <h2>热门服务器推荐</h2>
+            <p>探索我们精心挑选的高质量Minecraft基岩版服务器</p>
+        </div>
+
+        <div class="controls">
+            <div class="view-toggle">
+                <button id="cardViewBtn" class="active">
+                    <i class="fas fa-th-large"></i> 卡片视图
+                </button>
+                <button id="listViewBtn">
+                    <i class="fas fa-list"></i> 列表视图
+                </button>
+            </div>
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" placeholder="搜索服务器名称、描述或IP..." id="searchInput">
+                </div>
+                <button class="clear-btn" id="clearSearch">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button class="search-btn" id="performSearch">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="server-list" id="serverList">
+            <!-- 服务器卡片将由JavaScript动态加载 -->
+            <div class="loading-placeholder">
+                <div class="spinner"></div>
+                <p>正在加载服务器列表...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 BDSGP - Minecraft基岩版服务器列表</p>
+        <div class="footer-links">
+            <a href="#"><i class="fas fa-info-circle"></i> 关于我们</a>
+            <a href="#"><i class="fas fa-envelope"></i> 联系我们</a>
+            <a href="#"><i class="fab fa-github"></i> GitHub</a>
+            <a href="#"><i class="fab fa-discord"></i> Discord</a>
+        </div>
+    </footer>
+    <!-- 统一的JS应用 -->
+    <script src="./js/main.js"></script>
+</body>
+
+</html>
