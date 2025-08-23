@@ -11,6 +11,7 @@
     justify-content: center;
     align-items: center;
     min-height: 50vh;
+    grid-column: 1 / -1;
 }
 
 .empty-state {
@@ -23,11 +24,10 @@
     border-radius: 16px;
     box-shadow: var(--card-shadow);
     width: 100%;
-    max-width: 100%;
+    max-width: 600px;
     margin: 0 auto;
     transform: translateY(0);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    grid-column: 1 / -1;
 }
 
 .empty-state:hover {

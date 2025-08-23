@@ -832,7 +832,8 @@ function filterServers() {
         }, 10);
 
         // 为清除搜索按钮添加事件监听器
-        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+        document.getElementById('clearSearchBtn').addEventListener('click', (e) => {
+            e.preventDefault(); // 阻止默认行为
             log('搜索', '用户点击了清除搜索按钮', '搜索');
             // 添加淡出动画
             emptyState.style.opacity = '0';
@@ -844,7 +845,11 @@ function filterServers() {
                 console.log('[搜索] 清除搜索内容并重置显示');
                 DOM_ELEMENTS.searchInput.value = '';
                 filterServers();
-                DOM_ELEMENTS.searchInput.focus();
+                DOM_ELEMENTS.searchInput.blur(); // 取消搜索框的聚焦状态
+                // 确保没有其他代码会重新聚焦到搜索框
+                setTimeout(() => {
+                    DOM_ELEMENTS.searchInput.blur();
+                }, 100);
             }, 500);
         });
     }
@@ -963,11 +968,12 @@ function initializeApp() {
 
         // 清除搜索按钮
         if (DOM_ELEMENTS.clearSearch) {
-            DOM_ELEMENTS.clearSearch.addEventListener('click', () => {
+            DOM_ELEMENTS.clearSearch.addEventListener('click', (e) => {
+                e.preventDefault(); // 阻止默认行为
                 log('搜索', '用户点击了清除搜索按钮', '搜索');
                 DOM_ELEMENTS.searchInput.value = '';
                 filterServers();
-                DOM_ELEMENTS.searchInput.focus();
+                DOM_ELEMENTS.searchInput.blur(); // 取消搜索框的聚焦状态
             });
         }
 
@@ -976,6 +982,29 @@ function initializeApp() {
             DOM_ELEMENTS.performSearch.addEventListener('click', () => {
                 log('搜索', '用户点击了执行搜索按钮', '搜索');
                 filterServers();
+            });
+        }
+
+        // 刷新服务器列表按钮
+        const refreshBtn = document.getElementById('refreshServers');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                log('服务器列表', '用户点击了刷新服务器列表按钮', '刷新');
+                console.log('[服务器列表] 用户点击了刷新服务器列表按钮');
+
+                // 添加旋转动画
+                refreshBtn.classList.add('spinning');
+
+                // 清空当前搜索
+                DOM_ELEMENTS.searchInput.value = '';
+
+                // 重新加载服务器列表
+                loadServers();
+
+                // 移除旋转动画
+                setTimeout(() => {
+                    refreshBtn.classList.remove('spinning');
+                }, 1000);
             });
         }
 
