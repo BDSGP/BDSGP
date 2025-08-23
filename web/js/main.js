@@ -241,7 +241,7 @@ function connectToServer(host) {
         } catch (error) {
             log('服务器连接', `连接失败: ${error.message}`, '错误处理');
             console.error('[服务器连接] 连接失败:', error);
-            
+
             // 更新提示为错误状态
             if (toastContent && toast) {
                 toastContent.innerHTML = `
@@ -503,15 +503,15 @@ async function fetchServerInfo(host) {
 
         // 使用新的MOTD API，确保包含端口号
         log('MOTD请求', `请求地址：${host}`, 'API请求');
-        
+
         // 添加超时处理机制
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-        
+
         const response = await fetch(`${API_CONFIG.baseUrl}?host=${host}`, {
             signal: controller.signal
         });
-        
+
         // 清除超时计时器
         clearTimeout(timeoutId);
 
@@ -635,7 +635,7 @@ function toggleView(view) {
 
                 // 恢复状态点样式
                 const statusDot = card.querySelector('.status-dot');
-                if (statusDot && state.statusDotClass && 
+                if (statusDot && state.statusDotClass &&
                     (state.statusDotClass.includes('online-dot') || state.statusDotClass.includes('offline-dot'))) {
                     statusDot.className = state.statusDotClass;
                 }
@@ -695,7 +695,7 @@ function toggleView(view) {
 
                 // 恢复状态点样式
                 const statusDot = card.querySelector('.status-dot');
-                if (statusDot && state.statusDotClass && 
+                if (statusDot && state.statusDotClass &&
                     (state.statusDotClass.includes('online-dot') || state.statusDotClass.includes('offline-dot'))) {
                     statusDot.className = state.statusDotClass;
                 }

@@ -1,4 +1,3 @@
-
 /* 搜索无结果时的空状态样式 */
 .empty-search-state {
     text-align: center;
@@ -86,9 +85,11 @@
     0% {
         transform: translateY(0px);
     }
+
     50% {
         transform: translateY(-10px);
     }
+
     100% {
         transform: translateY(0px);
     }
@@ -99,6 +100,7 @@
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

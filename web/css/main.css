@@ -38,7 +38,6 @@ body {
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: var(--light);
     margin: 0;
-    margin-top: var(--header-height);
     padding: 0;
     color: var(--text);
     transition: var(--transition);
@@ -53,13 +52,14 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2rem;
+    padding: 0 clamp(1rem, 3vw, 2rem);
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 .navbar .logo-container {
@@ -89,7 +89,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     font-weight: 700;
-    font-size: 1.4rem;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
     position: relative;
     /* 添加相对定位，使logo-badge可以相对于它进行绝对定位 */
     padding: 5px;
@@ -97,6 +97,7 @@ body {
     border: 2px solid transparent;
     transition: border-color 0.3s ease;
     height: 100%;
+    max-width: clamp(150px, 25vw, 200px);
 }
 
 .logo:hover {
@@ -105,10 +106,12 @@ body {
 }
 
 .logo img {
-    height: 40px;
+    height: clamp(30px, 5vw, 40px);
     width: auto;
     border-radius: 8px;
     /* 添加圆角效果 */
+    max-height: 40px;
+    object-fit: contain;
 }
 
 .nav-links {
@@ -127,11 +130,13 @@ body {
     font-weight: 500;
     transition: var(--transition);
     gap: 0.5rem;
-    padding: 6px 10px;
+    padding: clamp(4px, 1.5vw, 6px) clamp(8px, 2vw, 10px);
     border-radius: 6px;
     border: 1px solid transparent;
     height: auto;
     margin: 0;
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    white-space: nowrap;
 }
 
 .nav-links a:hover {
@@ -145,11 +150,19 @@ body {
     background: none;
     border: none;
     color: white;
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
     cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
 }
 
-/* 英雄区域样式 */
+.mobile-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* 英雄区域样式 - 重构美化版 */
 .hero {
     background: linear-gradient(135deg, #0c0e1d 0%, #151925 15%, #1a2332 30%, #1e3a5f 50%, #1d4ed8 75%, #2563eb 100%);
     color: white;
@@ -160,59 +173,72 @@ body {
     min-height: 85vh;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
-    animation: heroEntry 1.2s ease-out;
-    margin-top: calc(-1 * var(--header-height));
-    padding-top: calc(2rem + var(--header-height));
+    animation: heroEntry 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    padding-top: calc(2.2rem + var(--header-height));
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transform: translateZ(0);
+    will-change: transform, opacity;
 }
 
 .hero-content {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
     position: relative;
     z-index: 3;
-    animation: contentFadeIn 1.2s ease-out 0.3s both;
-    overflow: visible;
-    padding: 1.5rem;
-    text-shadow: none;
+    animation: contentFadeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+    padding: 0 1.5rem;
+    text-align: center;
+    width: 100%;
+    transform: translateZ(0);
+    will-change: transform, opacity;
 }
 
 .hero h1 {
-    font-size: 4.2rem;
-    margin-bottom: 2rem;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    margin-bottom: 1.5rem;
     font-weight: 800;
-    animation: titleGlow 2.5s ease-in-out 0.4s both;
-    letter-spacing: -1.2px;
+    animation: titleGlow 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+    letter-spacing: -1px;
     line-height: 1.1;
     background: linear-gradient(120deg, #ffffff 0%, #e0e7ff 30%, #a5b4fc 60%, #c7d2fe 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: none;
     position: relative;
     display: inline-block;
+    text-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    opacity: 0;
 }
 
 .hero p {
-    font-size: 1.5rem;
-    margin-bottom: 3.2rem;
-    max-width: 800px;
+    font-size: clamp(0.5rem, 2.5vw, 1.1rem);
+    margin-bottom: 2.5rem;
+    max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
-    animation: textSlideUp 1.2s ease-out 0.6s both;
-    line-height: 1.75;
-    opacity: 0.92;
+    animation: textSlideUp 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+    line-height: 1.6;
+    opacity: 0;
     font-weight: 300;
     letter-spacing: 0.4px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    color: rgba(255, 255, 255, 0.92);
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    text-align: center;
+    padding: 0 1rem;
 }
 
 .hero-logo {
-    width: 260px;
-    height: 260px;
+    width: clamp(180px, 25vw, 280px);
+    height: clamp(180px, 25vw, 280px);
     margin: 0 auto 2.5rem;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
     backdrop-filter: blur(15px);
@@ -222,25 +248,57 @@ body {
     justify-content: center;
     border: 2px solid rgba(255, 255, 255, 0.18);
     overflow: visible;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 
-                inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
     transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    animation: enhancedFloat 5s ease-in-out infinite;
+    animation: logoFadeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both, enhancedFloat 5s cubic-bezier(0.34, 1.56, 0.64, 1) 1.4s infinite;
     position: relative;
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
 }
 
 .hero-logo:hover {
-    transform: translateY(-20px) scale(1.1);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45), 
-                0 0 40px rgba(99, 102, 241, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-30px) scale(1.05) rotateX(5deg) rotateZ(2deg);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45),
+        0 0 40px rgba(99, 102, 241, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 255, 255, 0.35);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+
+.hero-logo:hover .enhancedFloat {
     animation-play-state: paused;
 }
 
 .hero .btn {
-    animation: fadeInUp 1s ease-out 0.8s both;
+    animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.7s both;
+    margin: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(30px);
+    will-change: transform, opacity;
+}
+
+.hero .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.hero .btn:hover::before {
+    transform: translateX(0);
 }
 
 .hero::before {
@@ -250,13 +308,15 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 60% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+    background:
+        radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 60% 30%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 70% 70%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
     z-index: 1;
-    animation: backgroundShift 20s ease-in-out infinite;
+    animation: backgroundShift 25s ease-in-out infinite;
+    mix-blend-mode: overlay;
 }
 
 .hero-content {
@@ -297,34 +357,32 @@ body {
     object-fit: contain;
     border-radius: 16px;
     transition: all 0.4s ease;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) brightness(1.05);
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .hero-logo-slogan {
     position: absolute;
-    bottom: 15px;
-    /* 调整到更靠近右下角的位置 */
+    bottom: 35px;
     right: -30px;
-    /* 调整到更靠近右下角的位置 */
     color: #FFD700;
-    /* 金黄色文字，没有背景 */
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    z-index: 999;
-    /* 显著提高z-index值，确保在最顶层 */
+    letter-spacing: 1.5px;
+    z-index: 1000;
     animation: blink 0.5s ease-in-out infinite;
-    /* 2Hz频率，每秒闪烁2次 */
     white-space: nowrap;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    /* 添加文字阴影，增强可读性 */
     transform: rotate(-45deg);
-    /* -45度倾斜 */
     transform-origin: right bottom;
-    /* 以右下角为旋转中心 */
     overflow: visible;
-    /* 确保内容可见 */
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: 2px 5px;
+    border-radius: 3px;
 }
 
 @keyframes blink {
@@ -345,22 +403,15 @@ body {
     font-weight: 800;
 }
 
-.hero p {
-    font-size: 1.2rem;
-    margin-bottom: 2.5rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .hero-buttons {
     display: flex;
-    gap: 1.8rem;
+    gap: 1.5rem;
     justify-content: center;
     flex-wrap: wrap;
-    margin-bottom: 3.5rem;
+    margin: 0 auto 3rem;
+    max-width: 900px;
     animation: buttonsFadeIn 1.2s ease-out 0.8s both;
+    padding: 0.5rem;
 }
 
 .btn {
@@ -443,42 +494,74 @@ body {
 .hero-stats {
     display: flex;
     justify-content: center;
-    gap: 2.5rem;
-    margin-top: 3.5rem;
-    animation: statsFadeIn 1.2s ease-out 1s both;
+    gap: 2rem;
+    margin: 0 auto 3rem;
+    animation: statsFadeIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s both;
     flex-wrap: wrap;
+    max-width: 1000px;
+    padding: 0.5rem;
+    opacity: 0;
+    transform: translateY(40px);
+    will-change: transform, opacity;
 }
 
 .stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1.8rem 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    backdrop-filter: blur(15px);
-    width: 160px;
+    padding: 1.5rem 1.2rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    width: clamp(140px, 20vw, 180px);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    transform-style: preserve-3d;
+    position: relative;
+    overflow: hidden;
 }
 
 .stat-item:hover {
-    transform: translateY(-8px);
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-10px) scale(1.03);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 0 20px rgba(99, 102, 241, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    z-index: 10;
+}
+
+.stat-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    border-radius: inherit;
+    z-index: -1;
+}
+
+.stat-item:hover::before {
+    opacity: 1;
 }
 
 .stat-number {
-    font-size: 2.8rem;
+    font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 800;
     color: #fff;
-    margin-bottom: 0.6rem;
-    background: linear-gradient(to bottom, #ffffff, #a5b4fc);
+    margin-bottom: 0.5rem;
+    background: linear-gradient(120deg, #ffffff, #a5b4fc, #c7d2fe);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+    position: relative;
+    display: inline-block;
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .stat-label {
@@ -550,14 +633,16 @@ body {
 
 /* 主内容区域样式 */
 main {
-    padding: 3rem 2rem;
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
     max-width: 1280px;
-    margin: 2rem auto 0;
+    margin: clamp(1rem, 2vw, 2rem) auto 0;
     position: relative;
     z-index: 1;
     background: var(--light);
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .section-title {
@@ -566,16 +651,19 @@ main {
 }
 
 .section-title h2 {
-    font-size: 2.2rem;
+    font-size: clamp(1.8rem, 3.5vw, 2.2rem);
     font-weight: 700;
     color: var(--text);
     margin-bottom: 1rem;
+    line-height: 1.2;
 }
 
 .section-title p {
     color: var(--text-light);
-    max-width: 600px;
+    max-width: clamp(300px, 70vw, 600px);
     margin: 0 auto;
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    line-height: 1.6;
 }
 
 /* 控制栏样式 */
@@ -583,13 +671,15 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: clamp(1rem, 2vw, 2rem);
     flex-wrap: wrap;
     gap: 1rem;
     background: var(--card-bg);
-    padding: 1.2rem;
+    padding: clamp(0.8rem, 2vw, 1.2rem);
     border-radius: 12px;
     box-shadow: var(--card-shadow);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .view-toggle {
@@ -601,7 +691,7 @@ main {
     background: var(--card-bg);
     color: var(--text);
     border: 1px solid var(--gray);
-    padding: 0.6rem 1.2rem;
+    padding: clamp(0.4rem, 1.2vw, 0.6rem) clamp(0.8rem, 2vw, 1.2rem);
     border-radius: 8px;
     cursor: pointer;
     transition: var(--transition);
@@ -609,6 +699,7 @@ main {
     align-items: center;
     gap: 0.5rem;
     font-weight: 500;
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
 }
 
 .view-toggle button.active,
@@ -641,10 +732,11 @@ main {
     border: none;
     background: transparent;
     color: var(--text);
-    padding: 0.75rem 1rem;
+    padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.8rem, 2vw, 1rem);
     outline: none;
-    width: 250px;
+    width: clamp(150px, 30vw, 250px);
     transition: width 0.3s ease;
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
 }
 
 .search-box input:focus {
@@ -1224,6 +1316,122 @@ main {
     }
 }
 
+/* 英雄区域动画 */
+@keyframes heroEntry {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes contentFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes titleGlow {
+    0% {
+        opacity: 0.2;
+        transform: scale(0.95);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes textSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 0.92;
+        transform: translateY(0);
+    }
+}
+
+@keyframes enhancedFloat {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(1deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+}
+
+@keyframes logoFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes buttonsFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes statsFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @keyframes fadeInScale {
     from {
         opacity: 0;
@@ -1445,8 +1653,40 @@ main {
     }
 }
 
-/* 响应式设计 */
-@media (max-width: 900px) {
+/* 响应式设计 - 增强版 */
+
+/* 大型平板设备 - 1024px */
+@media (max-width: 1024px) {
+    .hero h1 {
+        font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+    }
+
+    .hero p {
+        font-size: clamp(1rem, 2.2vw, 1.4rem);
+        max-width: 700px;
+    }
+
+    .hero-logo {
+        width: clamp(160px, 22vw, 240px);
+        height: clamp(160px, 22vw, 240px);
+    }
+
+    .hero-stats {
+        gap: 1.5rem;
+    }
+
+    .stat-item {
+        width: clamp(130px, 18vw, 160px);
+        padding: 1.2rem 1rem;
+    }
+
+    .stat-number {
+        font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+    }
+}
+
+/* 中型平板设备 - 768px */
+@media (max-width: 768px) {
     .nav-links {
         display: none;
     }
@@ -1456,11 +1696,51 @@ main {
     }
 
     .hero h1 {
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        margin-bottom: 1.2rem;
     }
-}
 
-@media (max-width: 768px) {
+    .hero p {
+        font-size: clamp(0.95rem, 2vw, 1.3rem);
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .hero-logo {
+        width: clamp(140px, 20vw, 200px);
+        height: clamp(140px, 20vw, 200px);
+        margin-bottom: 2rem;
+    }
+
+    .hero-buttons {
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .btn {
+        padding: 0.9rem 2rem;
+        font-size: 1rem;
+    }
+
+    .hero-stats {
+        gap: 1.2rem;
+        margin: 0 auto 2.5rem;
+    }
+
+    .stat-item {
+        width: clamp(120px, 16vw, 150px);
+        padding: 1rem 0.8rem;
+    }
+
+    .stat-number {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        margin-bottom: 0.4rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+    }
+
     .list-view .server-card {
         flex-direction: column;
     }
@@ -1469,8 +1749,6 @@ main {
         width: 100%;
         height: 180px;
     }
-
-
 
     .controls {
         flex-direction: column;
@@ -1485,18 +1763,149 @@ main {
         width: 100%;
     }
 
+    .navbar {
+        padding: 0 1rem;
+    }
+}
+
+/* 小型手机设备 - 480px */
+@media (max-width: 480px) {
+    body {
+        font-size: 0.95rem;
+    }
+
+    .hero {
+        padding-top: calc(1.8rem + var(--header-height));
+    }
+
+    .hero {
+        padding: 2rem 1rem 1rem;
+        min-height: 80vh;
+    }
+
+    .hero-content {
+        padding: 5.5rem 1rem;
+    }
+
+    .hero h1 {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        margin-bottom: 1rem;
+    }
+
+    .hero p {
+        font-size: clamp(0.9rem, 2vw, 1.2rem);
+        margin-bottom: 1.8rem;
+        line-height: 1.4;
+    }
+
+    .hero-logo {
+        width: clamp(120px, 18vw, 180px);
+        height: clamp(120px, 18vw, 180px);
+        margin-bottom: 1.8rem;
+    }
+
+    .hero-logo-slogan {
+        bottom: 30px;
+        right: -25px;
+        font-size: 1.2rem;
+    }
+
     .hero-buttons {
         flex-direction: column;
-        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 2rem;
+        width: 100%;
     }
 
     .btn {
         width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
         justify-content: center;
     }
 
+    .hero-stats {
+        flex-direction: column;
+        gap: 1rem;
+        margin: 0 auto 2rem;
+        width: 100%;
+    }
+
+    .stat-item {
+        width: 100%;
+        padding: 1.2rem 1rem;
+    }
+
+    .stat-number {
+        font-size: clamp(1.8rem, 4vw, 2.2rem);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+    }
+
+    .server-list {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
     .navbar {
-        padding: 0 1rem;
+        padding: 0 0.8rem;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .logo img {
+        height: 32px;
+    }
+}
+
+/* 超小型手机设备 - 360px */
+@media (max-width: 360px) {
+    .hero {
+        padding: 1.5rem 0.8rem 1rem;
+    }
+
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-logo {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-logo-slogan {
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        padding: 0.9rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .stat-item {
+        padding: 1rem 0.8rem;
+    }
+
+    .stat-number {
+        font-size: 1.6rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
     }
 }
 
