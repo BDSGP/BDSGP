@@ -31,7 +31,9 @@
                 <i class="fas fa-moon"></i>
             </button>
             <button class="mobile-menu-btn">
-                <i class="fas fa-bars"></i>
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
         </div>
     </nav>
@@ -96,6 +98,19 @@
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
+            <div class="layout-options">
+                <div class="per-row-selector">
+                    <label for="perRowSelect">每行显示：</label>
+                    <select id="perRowSelect">
+                        <option value="1">1个</option>
+                        <option value="2" selected>2个</option>
+                        <option value="3">3个</option>
+                        <option value="4">4个</option>
+                        <option value="5">5个</option>
+                        <option value="6">6个</option>
+                    </select>
+                </div>
+            </div>
             <div class="search-container">
                 <div class="search-box">
                     <input type="text" placeholder="搜索服务器名称、描述或IP..." id="searchInput">
@@ -143,8 +158,6 @@
 
     <!-- 统一的JS应用 -->
     <script src="./js/main.js"></script>
-    <!-- 英雄区域特效脚本 -->
-    <script src="./js/hero-effects.js"></script>
 </body>
 
 </html>
