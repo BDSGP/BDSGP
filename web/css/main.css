@@ -364,24 +364,30 @@ body {
 
 .hero-logo-slogan {
     position: absolute;
-    bottom: 35px;
-    right: -30px;
+    bottom: 10px;
+    right: -100px;
     color: #FFD700;
     font-size: 1.5rem;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     z-index: 1000;
-    animation: blink 0.5s ease-in-out infinite;
+    animation: pulseScale 1s ease-in-out infinite, blink 0.5s ease-in-out infinite;
     white-space: nowrap;
     transform: rotate(-45deg);
-    transform-origin: right bottom;
+    transform-origin: center center;
     overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    text-align: center;
+    box-sizing: border-box;
     background: linear-gradient(45deg, #FFD700, #FFA500);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    padding: 2px 5px;
+    padding: 4px 2px;
     border-radius: 3px;
 }
 
@@ -394,6 +400,26 @@ body {
 
     50% {
         opacity: 0.3;
+    }
+}
+
+@keyframes pulseScale {
+
+    0%,
+    100% {
+        transform: rotate(-45deg) scale(1);
+    }
+
+    25% {
+        transform: rotate(-45deg) scale(1.1);
+    }
+
+    50% {
+        transform: rotate(-45deg) scale(0.95);
+    }
+
+    75% {
+        transform: rotate(-45deg) scale(1.05);
     }
 }
 
@@ -1466,13 +1492,13 @@ main {
         transform: scale(0.3) rotate(-10deg);
         filter: blur(5px);
     }
-    
+
     50% {
         opacity: 0.7;
         transform: scale(1.1) rotate(2deg);
         filter: blur(2px);
     }
-    
+
     100% {
         opacity: 1;
         transform: scale(1) rotate(0deg);
@@ -1486,13 +1512,13 @@ main {
         transform: translateY(-20px) scale(0.7);
         filter: blur(5px);
     }
-    
+
     50% {
         opacity: 0.8;
         transform: translateY(-5px) scale(1.05);
         filter: blur(2px);
     }
-    
+
     100% {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1506,13 +1532,13 @@ main {
         transform: scale(0);
         filter: blur(5px);
     }
-    
+
     50% {
         opacity: 0.7;
         transform: scale(1.3);
         filter: blur(2px);
     }
-    
+
     100% {
         opacity: 1;
         transform: scale(1);
@@ -1525,12 +1551,12 @@ main {
         transform: translateY(-15px) scale(1.05);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
-    
+
     50% {
         transform: translateY(-18px) scale(1.08);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
-    
+
     100% {
         transform: translateY(-15px) scale(1.05);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
