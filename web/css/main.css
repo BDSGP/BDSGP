@@ -336,8 +336,8 @@ main {
 /* 服务器列表样式 */
 .server-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
 }
 
 /* 暂无服务器提示样式 */
@@ -383,30 +383,36 @@ main {
 
 /* 列表视图样式 */
 .list-view .server-list {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 /* 服务器卡片样式 */
 .server-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    box-shadow: var(--card-shadow);
+    flex-direction: row;
     padding: 0;
-    transition: var(--transition);
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.4s forwards;
-    overflow: hidden;
-    height: auto;
-    position: relative;
+    height: 100%;
     display: flex;
-    flex-direction: column;
+    vertical-align: middle;
+    transform: translateZ(0);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, margin 0.3s ease;
+    margin-bottom: 15px;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    min-height: 180px;
 }
 
-.server-card:hover {
-    box-shadow: 0 20px 25px -5px var(--shadow);
-    transform: translateY(-5px);
+.server-card:hover, .server-card:focus, .server-card:active {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+    margin-top: -5px;
+    margin-bottom: 20px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, margin 0.3s ease;
 }
 
 @keyframes fadeInUp {
@@ -416,15 +422,49 @@ main {
     }
 }
 
+@keyframes continuous-float {
+    0% {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+        transform: translateY(-15px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+    100% {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(-15px);
+    }
+    100% {
+        transform: translateY(-20px);
+    }
+}
+
 /* 服务器图片样式 */
 .server-image-container {
-    position: relative;
-    width: 100%;
-    height: 180px;
+    width: 200px;
+    /* 减小宽度以适应一行两个服务器 */
+    height: 100%;
+    /* 使用100%高度确保与父div完全匹配 */
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     overflow: hidden;
     margin: 0;
+    /* 确保没有外边距 */
     padding: 0;
+    /* 确保没有内边距 */
     border-radius: 0;
+    /* 确保容器没有圆角 */
+    box-sizing: border-box;
+    /* 确保边框和内边距包含在高度计算中 */
 }
 
 .server-image {
@@ -432,10 +472,19 @@ main {
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s ease;
+    display: block;
+    /* 确保图片是块级元素 */
+    margin: 0;
+    /* 确保图片没有外边距 */
+    border: none;
+    /* 确保图片没有边框 */
+    transform: translateZ(0);
+    /* 防止图片边缘出现间隙 */
 }
 
 .server-card:hover .server-image {
-    transform: scale(1.05);
+    transform: scale(1.08);
+    filter: brightness(1.1);
 }
 
 .server-status {
@@ -450,6 +499,9 @@ main {
     display: flex;
     align-items: center;
     gap: 0.3rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: fadeInDown 0.5s ease forwards;
 }
 
 .online-dot {
@@ -460,7 +512,9 @@ main {
     display: inline-block;
     position: relative;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-    animation: pulse-dot 2s infinite;
+    animation: pulse-dot 2s infinite, fadeInScale 0.5s ease forwards;
+    opacity: 0;
+    transform: scale(0.5);
 }
 
 @keyframes pulse-dot {
@@ -499,7 +553,9 @@ main {
     display: inline-block;
     position: relative;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-    animation: pulse-dot-offline 2s infinite;
+    animation: pulse-dot-offline 2s infinite, fadeInScale 0.5s ease forwards;
+    opacity: 0;
+    transform: scale(0.5);
 }
 
 .offline-dot::after {
@@ -515,32 +571,132 @@ main {
     box-shadow: 0 0 0 1px white;
 }
 
-.server-status {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
+/* 列表视图中的服务器状态样式 */
+.list-view .server-status {
+    position: static;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
+    gap: 0.3rem;
+    margin: 0.25rem 0 0.5rem;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    width: fit-content;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.5s ease forwards;
 }
 
-.server-status:hover {
-    transform: scale(1.05);
+/* 列表视图中的服务器名称样式 */
+.list-view .server-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-view .server-status:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: none;
+}
+
+/* 卡片视图中的服务器状态样式 */
+.server-card .server-status {
+    position: static;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.25rem 0 0.5rem;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    width: fit-content;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.server-card .server-status:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: none;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* 服务器内容样式 */
 .server-content {
-    padding: 1.5rem;
+    flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    padding: 1.2rem;
+    overflow: hidden;
+    /* 防止内容溢出 */
+}
+
+.list-view .server-card h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.list-view .server-card h3 .server-name {
     flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-view .server-card h3 .server-ip {
+    margin-left: 0.5rem;
+    flex-shrink: 0;
 }
 
 .server-card h3 {
@@ -551,6 +707,8 @@ main {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .server-ip {
@@ -562,7 +720,33 @@ main {
     font-weight: 500;
 }
 
-/* 服务器信息样式 - 按钮悬浮式 */
+/* 列表视图中的服务器信息样式 */
+.list-view .server-info {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.25rem 0 0;
+    flex-wrap: wrap;
+}
+
+.list-view .info-item {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: var(--transition);
+    cursor: default;
+}
+
+.list-view .info-item:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* 卡片视图中的服务器信息样式 */
 .server-info {
     display: flex;
     flex-wrap: wrap;
@@ -593,56 +777,62 @@ main {
 }
 
 .server-description {
-    margin: 1rem 0;
-    font-size: 0.9rem;
-    color: var(--text-light);
-    line-height: 1.5;
-    flex: 1;
+    margin-top: 0.5rem;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 
 
 /* 列表视图样式 - 修复布局 */
 .list-view .server-card {
-    flex-direction: row;
-    padding: 0;
-    height: 100%;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 10px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, margin 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 100px;
 }
 
+/* 列表视图下的服务器卡片悬浮效果 */
+.list-view .server-card {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, margin 0.3s ease;
+}
+
+.list-view .server-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
+
+/* 列表视图中的服务器图片容器 */
 .list-view .server-image-container {
-    width: 200px;
-    /* 减小宽度以适应一行两个服务器 */
-    height: 100%;
-    /* 使用100%高度确保与父div完全匹配 */
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-right: 1rem;
     flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
-    margin: 0;
-    /* 确保没有外边距 */
-    padding: 0;
-    /* 确保没有内边距 */
-    border-radius: 0;
-    /* 确保容器没有圆角 */
-    box-sizing: border-box;
-    /* 确保边框和内边距包含在高度计算中 */
 }
 
 .list-view .server-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
-    display: block;
-    /* 确保图片是块级元素 */
-    margin: 0;
-    /* 确保图片没有外边距 */
-    border: none;
-    /* 确保图片没有边框 */
-    transform: translateZ(0);
-    /* 防止图片边缘出现间隙 */
+    transition: transform 0.3s ease;
 }
 
 .list-view .server-card:hover .server-image {
@@ -654,18 +844,20 @@ main {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 1.2rem;
-    overflow: hidden;
-    /* 防止内容溢出 */
+    padding: 0;
+    min-width: 0;
 }
 
 .list-view .server-description {
-    margin-top: 0.5rem;
-    display: block;
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
+    line-height: 1.4;
 }
 
 
@@ -838,9 +1030,12 @@ footer {
 /* Toast提示基本样式 */
 .toast {
     position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+    max-width: 90%;
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 1rem 1.5rem;
@@ -852,7 +1047,9 @@ footer {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
     opacity: 0;
-    max-width: 90%;
+    transform: translateY(20px);
+    text-align: center;
+    justify-content: center;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -897,9 +1094,12 @@ footer {
 /* 服务器连接提示样式 */
 .server-connect-toast {
     position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+    max-width: 90%;
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 1rem 1.5rem;
@@ -911,7 +1111,9 @@ footer {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
     opacity: 0;
-    max-width: 90%;
+    transform: translateY(20px);
+    text-align: center;
+    justify-content: center;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     pointer-events: none;
@@ -1012,7 +1214,7 @@ footer {
     /* 显示连接提示 */
     .server-connect-toast.show {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
     }
 
     /* 暗色模式适配 */

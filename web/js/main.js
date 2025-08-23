@@ -13,7 +13,7 @@ const SERVERS_CONFIG = [
         host: "play.easecation.net:19132", // 服务器主机地址:端口
         name: "EaseCation",                // 服务器名称
         image: "./images/logo.png",        // 服务器图标路径
-        motd: "§l§aEase§6Cation§r§3 §r§7§kEC§r §l§6BUILD BATTLES§r §7§kEC§r", // 服务器MOTD（带颜色代码）
+        motd: "欢迎来到EaseCation服务器！", // 服务器MOTD（带颜色代码）
         status: "online"                   // 服务器状态（online/offline）
     },
     {
@@ -160,7 +160,7 @@ function connectToServer(host) {
 
     // 创建美化的连接提示
     const toast = createToast(`正在连接到 ${host}...`, 'info');
-    
+
     // 添加加载动画
     const toastContent = toast.querySelector('.toast-content');
     toastContent.innerHTML = `
@@ -172,66 +172,103 @@ function connectToServer(host) {
             <div class="progress-bar"></div>
         </div>
     `;
-    
-    // 打开链接
+
+    // 获取进度条元素
+    const progressBar = toast.querySelector('.progress-bar');
+
+    // 开始进度条动画
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 5;
+        progressBar.style.width = `${progress}%`;
+
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+        }
+    }, 100);
+
+    // 先显示连接成功提示
     setTimeout(() => {
         try {
-            // 直接创建a标签并触发点击
-            log('服务器连接', '创建a标签并触发点击', '连接尝试');
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
             // 连接成功后更新提示
-            toastContent.innerHTML = `
-                <div class="connecting-success">
-                    <i class="fas fa-check-circle"></i>
-                    <span>已启动连接，请等待...</span>
-                </div>
-            `;
-            
-            // 3秒后隐藏提示
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(20px)';
-                
+            if (toastContent) {
+                toastContent.innerHTML = `
+                    <div class="connecting-success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>连接成功，正在启动游戏...</span>
+                    </div>
+                `;
+
+                // 等待1秒后更新提示信息
                 setTimeout(() => {
-                    if (document.body.contains(toast)) {
-                        document.body.removeChild(toast);
+                    if (toastContent) {
+                        toastContent.innerHTML = `
+                            <div class="connecting-success">
+                                <i class="fas fa-gamepad"></i>
+                                <span>游戏正在启动，请稍候...</span>
+                            </div>
+                        `;
+
+                        // 再等待1秒后执行跳转
+                        setTimeout(() => {
+                            // 直接创建a标签并触发点击
+                            log('服务器连接', '创建a标签并触发点击', '连接尝试');
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+
+                            // 跳转后等待1秒再隐藏提示
+                            setTimeout(() => {
+                                if (toast) {
+                                    toast.style.opacity = '0';
+                                    toast.style.transform = 'translateY(20px)';
+
+                                    setTimeout(() => {
+                                        if (document.body.contains(toast)) {
+                                            document.body.removeChild(toast);
+                                        }
+                                    }, 300);
+                                }
+                            }, 1000);
+                        }, 1000);
                     }
-                }, 300);
-            }, 3000);
+                }, 1000);
+            }
         } catch (error) {
             log('服务器连接', `连接失败: ${error.message}`, '错误处理');
             console.error('[服务器连接] 连接失败:', error);
             
-            // 连接失败后更新提示
-            toastContent.innerHTML = `
-                <div class="connecting-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>连接失败，请检查网络</span>
-                </div>
-            `;
-            toast.classList.remove('toast-info');
-            toast.classList.add('toast-error');
-            
-            // 3秒后隐藏提示
+            // 更新提示为错误状态
+            if (toastContent && toast) {
+                toastContent.innerHTML = `
+                    <div class="connecting-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>连接失败，请检查网络</span>
+                    </div>
+                `;
+                toast.classList.remove('toast-info');
+                toast.classList.add('toast-error');
+            }
+
+            // 等待1秒后隐藏提示
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    if (document.body.contains(toast)) {
-                        document.body.removeChild(toast);
-                    }
-                }, 300);
-            }, 3000);
+                if (toast) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(20px)';
+
+                    setTimeout(() => {
+                        if (document.body.contains(toast)) {
+                            document.body.removeChild(toast);
+                        }
+                    }, 300);
+                }
+            }, 1000);
         }
-    }, 1000);
+    }, 2000); // 等待2秒，确保进度条走完
 }
 
 // =============================================================================
@@ -267,16 +304,16 @@ function createServerCard(server) {
         <div class="server-card" data-host="${server.host}">
             <div class="server-image-container">
                 <img class="server-image" src="${server.image}" alt="${server.name}服务器MOTD">
-                <div class="server-status">
-                    <span class="status-dot"></span>
-                    <span class="online-text">加载中...</span>
-                </div>
             </div>
             <div class="server-content">
                 <h3>
                     <span class="server-name">${server.name}</span>
                     <span class="server-ip">${server.host}</span>
                 </h3>
+                <div class="server-status">
+                    <span class="status-dot"></span>
+                    <span class="online-text">加载中...</span>
+                </div>
                 <div class="server-info">
                     <div class="info-item" title="在线人数">
                         <i class="fas fa-users"></i>
@@ -361,7 +398,7 @@ async function updateServerCard(card) {
 
             // 设置在线状态图标
             if (statusDot) {
-                statusDot.className = 'online-dot';
+                statusDot.className = 'status-dot online-dot';
             }
 
             countElem.textContent = `${data.online || 0}/${data.max || 0}`;
@@ -404,7 +441,7 @@ async function updateServerCard(card) {
 
             // 设置离线状态图标
             if (statusDot) {
-                statusDot.className = 'offline-dot';
+                statusDot.className = 'status-dot offline-dot';
             }
 
             countElem.textContent = '0/0';
@@ -466,9 +503,17 @@ async function fetchServerInfo(host) {
 
         // 使用新的MOTD API，确保包含端口号
         log('MOTD请求', `请求地址：${host}`, 'API请求');
+        
+        // 添加超时处理机制
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+        
         const response = await fetch(`${API_CONFIG.baseUrl}?host=${host}`, {
-            timeout: API_CONFIG.timeout
+            signal: controller.signal
         });
+        
+        // 清除超时计时器
+        clearTimeout(timeoutId);
 
         // 检查HTTP响应状态
         if (!response.ok) {
@@ -541,6 +586,32 @@ async function fetchServerInfo(host) {
 function toggleView(view) {
     log('视图切换', `切换到${view === 'card' ? '卡片' : '列表'}视图`, '视图切换');
 
+    // 在切换视图前，保存所有服务器卡片的当前状态
+    const cards = document.querySelectorAll('.server-card');
+    const serverStates = [];
+
+    cards.forEach(card => {
+        const host = card.getAttribute('data-host');
+        const statusText = card.querySelector('.online-text');
+        const statusDot = card.querySelector('.status-dot');
+        const onlineCount = card.querySelector('.online-count');
+        const serverVersion = card.querySelector('.server-version');
+        const serverPing = card.querySelector('.server-ping');
+        const serverGamemode = card.querySelector('.server-gamemode');
+        const motdElement = card.querySelector('.motd-text');
+
+        serverStates.push({
+            host,
+            status: statusText ? statusText.textContent : null,
+            statusDotClass: statusDot ? statusDot.className : null,
+            onlineCount: onlineCount ? onlineCount.textContent : null,
+            version: serverVersion ? serverVersion.textContent : null,
+            ping: serverPing ? serverPing.textContent : null,
+            gamemode: serverGamemode ? serverGamemode.textContent : null,
+            motd: motdElement ? motdElement.innerHTML : null
+        });
+    });
+
     if (view === 'card') {
         // 切换到卡片视图
         log('视图切换', '应用卡片视图样式', '视图切换');
@@ -548,28 +619,56 @@ function toggleView(view) {
         DOM_ELEMENTS.gridViewBtn.classList.add('active');
         DOM_ELEMENTS.listViewBtn.classList.remove('active');
 
-        const cards = document.querySelectorAll('.server-card');
         cards.forEach(card => {
             card.style.animation = 'fadeInUp 0.4s forwards';
-            // 确保MOTD在卡片视图中可见并正确渲染颜色
-            const motdElement = card.querySelector('.server-description');
-            if (motdElement) {
-                motdElement.style.display = 'block';
-                // 获取原始MOTD文本并解析颜色代码
-                const host = card.getAttribute('data-host');
-                const server = SERVERS_CONFIG.find(s => s.host === host);
-                if (server) {
-                    // 新API返回的是原始MOTD文本，需要解析颜色代码
-                    let motdHtml = '';
-                    if (server.motd) {
-                        motdHtml = parseMinecraftColors(server.motd) || '欢迎来到服务器！';
-                        log('MOTD显示', '使用原始MOTD并解析颜色代码', '视图切换');
-                    } else {
-                        motdHtml = '欢迎来到服务器！';
-                        log('MOTD显示', '使用默认MOTD', '视图切换');
-                    }
 
-                    motdElement.innerHTML = motdHtml;
+            // 恢复服务器状态
+            const host = card.getAttribute('data-host');
+            const state = serverStates.find(s => s.host === host);
+
+            if (state) {
+                // 恢复状态文本
+                const statusText = card.querySelector('.online-text');
+                if (statusText && state.status && state.status !== '加载中...' && state.status !== '查询中...') {
+                    statusText.textContent = state.status;
+                }
+
+                // 恢复状态点样式
+                const statusDot = card.querySelector('.status-dot');
+                if (statusDot && state.statusDotClass && 
+                    (state.statusDotClass.includes('online-dot') || state.statusDotClass.includes('offline-dot'))) {
+                    statusDot.className = state.statusDotClass;
+                }
+
+                // 恢复在线人数
+                const onlineCount = card.querySelector('.online-count');
+                if (onlineCount && state.onlineCount && state.onlineCount !== '加载中...') {
+                    onlineCount.textContent = state.onlineCount;
+                }
+
+                // 恢复服务器版本
+                const serverVersion = card.querySelector('.server-version');
+                if (serverVersion && state.version && state.version !== '加载中...') {
+                    serverVersion.textContent = state.version;
+                }
+
+                // 恢复服务器延迟
+                const serverPing = card.querySelector('.server-ping');
+                if (serverPing && state.ping && state.ping !== '--') {
+                    serverPing.textContent = state.ping;
+                }
+
+                // 恢复游戏模式
+                const serverGamemode = card.querySelector('.server-gamemode');
+                if (serverGamemode && state.gamemode && state.gamemode !== '加载中...') {
+                    serverGamemode.textContent = state.gamemode;
+                }
+
+                // 恢复MOTD
+                const motdElement = card.querySelector('.server-description');
+                if (motdElement && state.motd) {
+                    motdElement.innerHTML = state.motd;
+                    motdElement.style.display = 'block';
                 }
             }
         });
@@ -580,34 +679,61 @@ function toggleView(view) {
         DOM_ELEMENTS.gridViewBtn.classList.remove('active');
         DOM_ELEMENTS.listViewBtn.classList.add('active');
 
-        const cards = document.querySelectorAll('.server-card');
         cards.forEach(card => {
             card.style.animation = 'fadeInLeft 0.4s forwards';
-            // 确保MOTD在列表视图中可见并正确渲染颜色
-            const motdElement = card.querySelector('.server-description');
-            if (motdElement) {
-                motdElement.style.display = 'block';
-                motdElement.style.marginTop = '0.5rem';
-                motdElement.style.overflow = 'hidden';
-                motdElement.style.textOverflow = 'ellipsis';
-                motdElement.style.whiteSpace = 'nowrap';
-                motdElement.style.maxWidth = '100%';
 
-                // 获取原始MOTD文本并解析颜色代码
-                const host = card.getAttribute('data-host');
-                const server = SERVERS_CONFIG.find(s => s.host === host);
-                if (server) {
-                    // 新API返回的是原始MOTD文本，需要解析颜色代码
-                    let motdHtml = '';
-                    if (server.motd) {
-                        motdHtml = parseMinecraftColors(server.motd) || '欢迎来到服务器！';
-                        log('MOTD显示', '使用原始MOTD并解析颜色代码', '视图切换');
-                    } else {
-                        motdHtml = '欢迎来到服务器！';
-                        log('MOTD显示', '使用默认MOTD', '视图切换');
-                    }
+            // 恢复服务器状态
+            const host = card.getAttribute('data-host');
+            const state = serverStates.find(s => s.host === host);
 
-                    motdElement.innerHTML = motdHtml;
+            if (state) {
+                // 恢复状态文本
+                const statusText = card.querySelector('.online-text');
+                if (statusText && state.status && state.status !== '加载中...' && state.status !== '查询中...') {
+                    statusText.textContent = state.status;
+                }
+
+                // 恢复状态点样式
+                const statusDot = card.querySelector('.status-dot');
+                if (statusDot && state.statusDotClass && 
+                    (state.statusDotClass.includes('online-dot') || state.statusDotClass.includes('offline-dot'))) {
+                    statusDot.className = state.statusDotClass;
+                }
+
+                // 恢复在线人数
+                const onlineCount = card.querySelector('.online-count');
+                if (onlineCount && state.onlineCount && state.onlineCount !== '加载中...') {
+                    onlineCount.textContent = state.onlineCount;
+                }
+
+                // 恢复服务器版本
+                const serverVersion = card.querySelector('.server-version');
+                if (serverVersion && state.version && state.version !== '加载中...') {
+                    serverVersion.textContent = state.version;
+                }
+
+                // 恢复服务器延迟
+                const serverPing = card.querySelector('.server-ping');
+                if (serverPing && state.ping && state.ping !== '--') {
+                    serverPing.textContent = state.ping;
+                }
+
+                // 恢复游戏模式
+                const serverGamemode = card.querySelector('.server-gamemode');
+                if (serverGamemode && state.gamemode && state.gamemode !== '加载中...') {
+                    serverGamemode.textContent = state.gamemode;
+                }
+
+                // 恢复MOTD
+                const motdElement = card.querySelector('.server-description');
+                if (motdElement && state.motd) {
+                    motdElement.innerHTML = state.motd;
+                    motdElement.style.display = 'block';
+                    motdElement.style.marginTop = '0.5rem';
+                    motdElement.style.overflow = 'hidden';
+                    motdElement.style.textOverflow = 'ellipsis';
+                    motdElement.style.whiteSpace = 'nowrap';
+                    motdElement.style.maxWidth = '100%';
                 }
             }
         });
@@ -770,8 +896,17 @@ function loadServers() {
         return;
     }
 
-    // 清空现有内容
+    // 清空现有内容，包括加载占位符
     DOM_ELEMENTS.serverList.innerHTML = '';
+
+    // 显示加载状态
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'loading-placeholder';
+    loadingIndicator.innerHTML = `
+            <div class="spinner"></div>
+            <p>正在加载服务器列表...</p>
+        `;
+    DOM_ELEMENTS.serverList.appendChild(loadingIndicator);
 
     // 创建服务器卡片
     SERVERS_CONFIG.forEach(server => {
@@ -779,6 +914,12 @@ function loadServers() {
         DOM_ELEMENTS.serverList.insertAdjacentHTML('beforeend', cardHtml);
         log('服务器列表', `已添加服务器卡片: ${server.name} (${server.host})`, '初始化');
     });
+
+    // 移除加载占位符
+    const loadingElement = DOM_ELEMENTS.serverList.querySelector('.loading-placeholder');
+    if (loadingElement) {
+        loadingElement.remove();
+    }
 
     // 触发服务器列表加载完成事件
     log('服务器列表', '服务器列表加载完成，触发事件', '初始化');
@@ -798,9 +939,7 @@ function initializeApp() {
     log('应用初始化', '加载服务器列表', '初始化');
     loadServers();
 
-    // 初始化服务器状态
-    log('应用初始化', '更新所有服务器状态', '初始化');
-    updateAllServers();
+    // 服务器状态更新将在serversLoaded事件中处理
 
     // 添加视图切换事件监听器
     if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
@@ -945,17 +1084,7 @@ document.addEventListener('serversLoaded', () => {
             log('应用启动', '添加服务器卡片点击处理程序', '启动');
             addServerCardClickHandlers();
 
-            // 在视图切换时重新绑定点击事件
-            if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
-                log('应用启动', '添加视图切换时的点击事件重新绑定', '启动');
-                DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => {
-                    setTimeout(addServerCardClickHandlers, 100);
-                });
-
-                DOM_ELEMENTS.listViewBtn.addEventListener('click', () => {
-                    setTimeout(addServerCardClickHandlers, 100);
-                });
-            }
+            // 视图切换不需要重新绑定点击事件
         }, 1500);
     }, 1000); // 延迟1秒确保DOM已渲染完成
 });
@@ -965,24 +1094,7 @@ document.addEventListener('DOMContentLoaded', function () {
     log('应用启动', 'DOM加载完成，准备添加服务器卡片点击事件', '启动');
     console.log('[初始化] DOM加载完成，准备添加服务器卡片点击事件');
 
-    // 等待服务器列表加载完成
-    setTimeout(() => {
-        log('应用启动', '开始添加服务器卡片点击事件', '启动');
-        console.log('[初始化] 开始添加服务器卡片点击事件');
-        addServerCardClickHandlers();
-
-        // 在视图切换时重新绑定点击事件
-        if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
-            log('应用启动', '添加视图切换时的点击事件重新绑定', '启动');
-            DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => {
-                setTimeout(addServerCardClickHandlers, 100);
-            });
-
-            DOM_ELEMENTS.listViewBtn.addEventListener('click', () => {
-                setTimeout(addServerCardClickHandlers, 100);
-            });
-        }
-    }, 2000); // 等待2秒确保所有元素都已加载
+    // 点击事件处理将在serversLoaded事件中处理
 
     // 初始化应用
     log('应用启动', '调用初始化函数', '启动');
