@@ -14,9 +14,11 @@
 <body>
     <!-- 导航栏 -->
     <nav class="navbar">
-        <div class="logo">
-            <i class="fas fa-cube"></i>
-            <span>BDSGP</span>
+        <div class="logo-container">
+            <div class="logo">
+                <img src="images/logo.png" alt="BDSGP Logo">
+                <span>BDSGP</span>
+            </div>
         </div>
         <div class="nav-links">
             <a href="#"><i class="fas fa-home"></i> 首页</a>
@@ -24,12 +26,14 @@
             <a href="#"><i class="fas fa-info-circle"></i> 关于我们</a>
             <a href="#"><i class="fas fa-envelope"></i> 联系我们</a>
         </div>
-        <button class="theme-toggle" id="themeToggle">
-            <i class="fas fa-moon"></i>
-        </button>
-        <button class="mobile-menu-btn">
-            <i class="fas fa-bars"></i>
-        </button>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
     </nav>
 
     <!-- 英雄区域 -->
@@ -37,6 +41,7 @@
         <div class="hero-content">
             <div class="hero-logo">
                 <img src="images/logo.png" alt="BDSGP Logo">
+                <div class="hero-logo-slogan">基岩版</div>
             </div>
             <h1>探索最佳Minecraft服务器</h1>
             <p>发现并加入最适合您的Minecraft基岩版服务器，体验多人游戏的乐趣！</p>
@@ -104,7 +109,7 @@
             <a href="#"><i class="fab fa-discord"></i> Discord</a>
         </div>
     </footer>
-    
+
     <!-- 连接提示 -->
     <div class="server-connect-toast" id="serverConnectToast">
         <div class="toast-content">
@@ -117,9 +122,11 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 统一的JS应用 -->
     <script src="./js/main.js"></script>
+    <!-- 滚动位置修复脚本 -->
+    <script src="./js/scroll-fix.js"></script>
 </body>
 
 </html>
