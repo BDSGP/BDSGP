@@ -1046,6 +1046,9 @@ function handleServerCardClick(event) {
     let card = event.target.closest('.server-card');
     if (!card) return;
 
+    // 阻止事件冒泡，避免干扰其他事件
+    event.stopPropagation();
+
     // 获取服务器主机地址
     const host = card.getAttribute('data-host');
     if (host) {
@@ -1071,14 +1074,15 @@ function addServerCardClickHandlers() {
     // 移除可能已存在的事件监听器，避免重复绑定
     serverList.removeEventListener('click', handleServerCardClick);
 
-
-    // 添加事件监听器
-    serverList.addEventListener('click', handleServerCardClick);
+    // 添加事件监听器，使用事件捕获模式
+    serverList.addEventListener('click', handleServerCardClick, true);
 
     // 添加指针样式到所有服务器卡片
     const serverCards = document.querySelectorAll('.server-card');
     serverCards.forEach(card => {
         card.style.cursor = 'pointer';
+        // 确保卡片有正确的z-index，以便悬浮效果正常工作
+        card.style.position = 'relative';
     });
 
     log('服务器点击', `已绑定 ${serverCards.length} 个服务器卡片的点击事件`, '事件绑定');

@@ -38,6 +38,9 @@
 
     <!-- 英雄区域 -->
     <section class="hero">
+        <!-- 浮动粒子效果 -->
+        <div class="hero-particles" id="heroParticles"></div>
+
         <div class="hero-content">
             <div class="hero-logo">
                 <img src="images/logo.png" alt="BDSGP Logo">
@@ -56,8 +59,24 @@
                     <i class="fas fa-plus"></i> 添加服务器
                 </a>
             </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="150">0</span>
+                    <span class="stat-label">在线服务器</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="5000">0</span>
+                    <span class="stat-label">活跃玩家</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="24">0</span>
+                    <span class="stat-label">全天候运行</span>
+                </div>
+            </div>
         </div>
     </section>
+
+
 
     <!-- 主内容区域 -->
     <main>
@@ -125,8 +144,8 @@
 
     <!-- 统一的JS应用 -->
     <script src="./js/main.js"></script>
-    <!-- 滚动位置修复脚本 -->
-    <script src="./js/scroll-fix.js"></script>
+    <!-- 英雄区域特效脚本 -->
+    <script src="./js/hero-effects.js"></script>
 </body>
 
 </html>

@@ -14,6 +14,7 @@
     --card-shadow: 0 10px 25px -5px var(--shadow);
     --transition: all 0.3s ease;
     --header-height: 70px;
+    --hero-transition: #f9fafb;
 }
 
 .dark-mode {
@@ -24,6 +25,7 @@
     --text-light: #d1d5db;
     --shadow: rgba(0, 0, 0, 0.3);
     --light: #111827;
+    --hero-transition: #1f2937;
 }
 
 * {
@@ -105,7 +107,8 @@ body {
 .logo img {
     height: 40px;
     width: auto;
-    border-radius: 8px; /* 添加圆角效果 */
+    border-radius: 8px;
+    /* 添加圆角效果 */
 }
 
 .nav-links {
@@ -148,69 +151,89 @@ body {
 
 /* 英雄区域样式 */
 .hero {
-    background: linear-gradient(to bottom right, #2c3e50, #4a6fa1);
+    background: linear-gradient(135deg, #0c0e1d 0%, #151925 15%, #1a2332 30%, #1e3a5f 50%, #1d4ed8 75%, #2563eb 100%);
     color: white;
-    padding: 8rem 2rem 5rem;
+    padding: 5rem 2rem 3rem;
     text-align: center;
     position: relative;
-    overflow: visible;
-    /* 允许内容溢出显示 */
-    min-height: 100vh;
+    overflow: hidden;
+    min-height: 95vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    animation: fadeInUp 0.8s ease-out;
+    align-items: center;
+    animation: heroEntry 1.2s ease-out;
     margin-top: calc(-1 * var(--header-height));
-    padding-top: calc(8rem + var(--header-height));
+    padding-top: calc(5rem + var(--header-height));
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .hero-content {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     position: relative;
-    z-index: 1;
-    animation: fadeInUp 1s ease-out 0.2s both;
+    z-index: 3;
+    animation: contentFadeIn 1.2s ease-out 0.3s both;
     overflow: visible;
-    /* 允许内容溢出显示 */
+    padding: 1.5rem;
+    text-shadow: none;
 }
 
 .hero h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    font-weight: 700;
-    animation: fadeInUp 1s ease-out 0.4s both;
+    font-size: 3.8rem;
+    margin-bottom: 1.8rem;
+    font-weight: 800;
+    animation: titleGlow 2s ease-in-out 0.4s both;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    background: linear-gradient(120deg, #ffffff 0%, #a5b4fc 50%, #c7d2fe 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    position: relative;
+    display: inline-block;
 }
 
 .hero p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    max-width: 600px;
+    font-size: 1.4rem;
+    margin-bottom: 3rem;
+    max-width: 750px;
     margin-left: auto;
     margin-right: auto;
-    animation: fadeInUp 1s ease-out 0.6s both;
+    animation: textSlideUp 1s ease-out 0.6s both;
+    line-height: 1.7;
+    opacity: 0.9;
+    font-weight: 300;
+    letter-spacing: 0.3px;
 }
 
 .hero-logo {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto 0.8rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    width: 240px;
+    height: 240px;
+    margin: 0 auto 2rem;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 3px solid rgba(255, 255, 255, 0.2);
     overflow: visible;
-    /* 允许内容溢出显示 */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    animation: bounce 2s ease-in-out 0.8s both;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: enhancedFloat 4s ease-in-out infinite;
     position: relative;
-    /* 添加相对定位，使hero-logo-badge可以相对于它进行绝对定位 */
 }
 
 .hero-logo:hover {
-    animation: pulse 1.5s ease-in-out infinite;
+    transform: translateY(-15px) scale(1.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 
+                0 0 30px rgba(99, 102, 241, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    animation-play-state: paused;
 }
 
 .hero .btn {
@@ -240,7 +263,7 @@ body {
 .hero-logo {
     width: 200px;
     height: 200px;
-    margin: 0 auto 10rem;
+    margin: 0 auto 5rem;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     display: flex;
@@ -323,25 +346,29 @@ body {
 
 .hero-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 3rem;
+    animation: buttonsFadeIn 1s ease-out 0.8s both;
 }
 
 .btn {
-    padding: 0.8rem 1.8rem;
+    padding: 1rem 2.2rem;
     border-radius: 50px;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.8rem;
     text-decoration: none;
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: none;
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    animation: fadeInUp 0.6s ease-out both;
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .btn::before {
@@ -371,25 +398,112 @@ body {
 }
 
 .btn-primary {
-    background: var(--primary);
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: white;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
 }
 
 .btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px -10px var(--primary);
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
     color: white;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* 英雄区域统计数据 */
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2.2rem;
+    margin-top: 3rem;
+    animation: statsFadeIn 1s ease-out 1s both;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.8rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    width: 160px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stat-item:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.stat-number {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.6rem;
+    background: linear-gradient(to bottom, #ffffff, #a5b4fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+/* 向下滚动指示器已移除 */
+
+/* 英雄区域过渡效果已移除 */
+
+/* 粒子效果样式 */
+.hero-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.particle {
+    position: absolute;
+    top: -10%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(110vh);
+    }
 }
 
 /* 主题切换按钮 */
@@ -426,7 +540,12 @@ body {
 main {
     padding: 3rem 2rem;
     max-width: 1280px;
-    margin: 0 auto;
+    margin: 2rem auto 0;
+    position: relative;
+    z-index: 1;
+    background: var(--light);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
