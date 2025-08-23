@@ -153,18 +153,18 @@ body {
 .hero {
     background: linear-gradient(135deg, #0c0e1d 0%, #151925 15%, #1a2332 30%, #1e3a5f 50%, #1d4ed8 75%, #2563eb 100%);
     color: white;
-    padding: 5rem 2rem 3rem;
+    padding: 3rem 2rem 1.5rem;
     text-align: center;
     position: relative;
     overflow: hidden;
-    min-height: 95vh;
+    min-height: 85vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     animation: heroEntry 1.2s ease-out;
     margin-top: calc(-1 * var(--header-height));
-    padding-top: calc(5rem + var(--header-height));
+    padding-top: calc(2rem + var(--header-height));
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -181,13 +181,13 @@ body {
 }
 
 .hero h1 {
-    font-size: 3.8rem;
-    margin-bottom: 1.8rem;
+    font-size: 4.2rem;
+    margin-bottom: 2rem;
     font-weight: 800;
-    animation: titleGlow 2s ease-in-out 0.4s both;
-    letter-spacing: -1px;
-    line-height: 1.15;
-    background: linear-gradient(120deg, #ffffff 0%, #a5b4fc 50%, #c7d2fe 100%);
+    animation: titleGlow 2.5s ease-in-out 0.4s both;
+    letter-spacing: -1.2px;
+    line-height: 1.1;
+    background: linear-gradient(120deg, #ffffff 0%, #e0e7ff 30%, #a5b4fc 60%, #c7d2fe 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -197,42 +197,45 @@ body {
 }
 
 .hero p {
-    font-size: 1.4rem;
-    margin-bottom: 3rem;
-    max-width: 750px;
+    font-size: 1.5rem;
+    margin-bottom: 3.2rem;
+    max-width: 800px;
     margin-left: auto;
     margin-right: auto;
-    animation: textSlideUp 1s ease-out 0.6s both;
-    line-height: 1.7;
-    opacity: 0.9;
+    animation: textSlideUp 1.2s ease-out 0.6s both;
+    line-height: 1.75;
+    opacity: 0.92;
     font-weight: 300;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .hero-logo {
-    width: 240px;
-    height: 240px;
-    margin: 0 auto 2rem;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(12px);
-    border-radius: 24px;
+    width: 260px;
+    height: 260px;
+    margin: 0 auto 2.5rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(15px);
+    border-radius: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.18);
     overflow: visible;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    animation: enhancedFloat 4s ease-in-out infinite;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: enhancedFloat 5s ease-in-out infinite;
     position: relative;
 }
 
 .hero-logo:hover {
-    transform: translateY(-15px) scale(1.08);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 
-                0 0 30px rgba(99, 102, 241, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-20px) scale(1.1);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45), 
+                0 0 40px rgba(99, 102, 241, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.35);
     animation-play-state: paused;
 }
 
@@ -247,8 +250,13 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
-    background-size: 100% 100%;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 60% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+    z-index: 1;
+    animation: backgroundShift 20s ease-in-out infinite;
 }
 
 .hero-content {
@@ -284,10 +292,12 @@ body {
 }
 
 .hero-logo img {
-    width: 90%;
-    height: 90%;
+    width: 80%;
+    height: 80%;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: 16px;
+    transition: all 0.4s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 .hero-logo-slogan {
@@ -346,29 +356,29 @@ body {
 
 .hero-buttons {
     display: flex;
-    gap: 1.5rem;
+    gap: 1.8rem;
     justify-content: center;
     flex-wrap: wrap;
-    margin-bottom: 3rem;
-    animation: buttonsFadeIn 1s ease-out 0.8s both;
+    margin-bottom: 3.5rem;
+    animation: buttonsFadeIn 1.2s ease-out 0.8s both;
 }
 
 .btn {
-    padding: 1rem 2.2rem;
+    padding: 1.1rem 2.4rem;
     border-radius: 50px;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.9rem;
     text-decoration: none;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: none;
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    font-size: 1.05rem;
-    letter-spacing: 0.5px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    font-size: 1.1rem;
+    letter-spacing: 0.6px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
 .btn::before {
@@ -400,40 +410,42 @@ body {
 .btn-primary {
     background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: white;
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.45);
     position: relative;
     overflow: hidden;
     z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary:hover {
     background: linear-gradient(135deg, #4f46e5, #4338ca);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.55);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
 /* 英雄区域统计数据 */
 .hero-stats {
     display: flex;
     justify-content: center;
-    gap: 2.2rem;
-    margin-top: 3rem;
-    animation: statsFadeIn 1s ease-out 1s both;
+    gap: 2.5rem;
+    margin-top: 3.5rem;
+    animation: statsFadeIn 1.2s ease-out 1s both;
     flex-wrap: wrap;
 }
 
