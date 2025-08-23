@@ -1,703 +1,993 @@
 // =============================================================================
 // BDSGP 服务器列表应用 - 统一管理所有功能
-// 面向 AI 编程（最直白）
+// 优化版本 - 逻辑清晰，代码分类布局
 // =============================================================================
 
-document.addEventListener('DOMContentLoaded', function () {
-    // =============================================================================
-    // 配置和常量
-    // =============================================================================
+// =============================================================================
+// 1. 常量配置
+// =============================================================================
 
-    // 服务器数据配置
-    // 修改此数组来添加、删除或修改服务器信息
-    const servers = [
-        {
-            host: "play.easecation.net:19132", // 服务器主机地址:端口
-            name: "EaseCation",                // 服务器名称
-            image: "./images/logo.png",        // 服务器图标路径
-            motd: "§l§aEase§6Cation§r§3 §r§7§kEC§r §l§6BUILD BATTLES§r §7§kEC§r", // 服务器MOTD（带颜色代码）
-            status: "online"                   // 服务器状态（online/offline）
-        },
-        {
-            host: "yixiu.huohuo.ink:11451",
-            name: "亦朽服务器",
-            image: "./images/亦朽-YX.png",
-            motd: "欢迎来到亦朽服务器！",
-            status: "online"
-        },
-        {
-            host: "menghan.love:19132",
-            name: "梦涵服务器",
-            image: "./images/梦涵LOVE.jpg",
-            motd: "和谐友爱，等你来！",
-            status: "online"
-        }
-    ];
+// 服务器数据配置
+const SERVERS_CONFIG = [
+    {
+        host: "play.easecation.net:19132", // 服务器主机地址:端口
+        name: "EaseCation",                // 服务器名称
+        image: "./images/logo.png",        // 服务器图标路径
+        motd: "§l§aEase§6Cation§r§3 §r§7§kEC§r §l§6BUILD BATTLES§r §7§kEC§r", // 服务器MOTD（带颜色代码）
+        status: "online"                   // 服务器状态（online/offline）
+    },
+    {
+        host: "yixiu.huohuo.ink:11451",
+        name: "亦朽服务器",
+        image: "./images/亦朽-YX.png",
+        motd: "欢迎来到亦朽服务器！",
+        status: "online"
+    },
+    {
+        host: "menghan.love:19132",
+        name: "梦涵服务器",
+        image: "./images/梦涵LOVE.jpg",
+        motd: "和谐友爱，等你来！",
+        status: "online"
+    }
+];
 
-    // API配置
-    const API_CONFIG = {
-        baseUrl: "https://motdbe.blackbe.work/api",
-        timeout: 5000  // 请求超时时间（毫秒）
-    };
+// API配置
+const API_CONFIG = {
+    baseUrl: "https://motdbe.blackbe.work/api",
+    timeout: 5000  // 请求超时时间（毫秒）
+};
 
-    // =============================================================================
-    // DOM元素获取
-    // =============================================================================
+// 日志计数器
+let logCounter = 0;
 
-    // 获取页面主要DOM元素
-    const serverList = document.getElementById('serverList');        // 服务器列表容器
-    const gridViewBtn = document.getElementById('cardViewBtn');     // 卡片视图按钮
-    const listViewBtn = document.getElementById('listViewBtn');     // 列表视图按钮
-    const main = document.querySelector('main');                  // 主内容区域
-    const searchInput = document.getElementById('searchInput');     // 搜索输入框
-    const themeToggle = document.getElementById('themeToggle');     // 主题切换按钮
+/**
+ * 格式化日志输出，添加序号和步骤说明
+ * @param {string} category - 日志类别
+ * @param {string} message - 日志消息
+ * @param {string} step - 步骤说明
+ */
+function log(category, message, step = '') {
+    logCounter++;
+    const stepText = step ? `- ${step}` : '';
+    console.log(`[${logCounter}] [${category}] ${message} ${stepText}`);
+}
 
-    // =============================================================================
-    // 工具函数
-    // =============================================================================
+// =============================================================================
+// 2. 工具函数
+// =============================================================================
 
-    /**
-     * 解析Minecraft颜色代码
-     * 将Minecraft中的§颜色代码转换为HTML样式
-     * @param {string} text - 包含Minecraft颜色代码的文本
-     * @returns {string} - 转换后的HTML文本
-     */
-    function parseMinecraftColors(text) {
-        if (!text) return '';
-
-        // Minecraft颜色代码映射表
-        const colorMap = {
-            '§0': '<span style="color: #000000">', // 黑色
-            '§1': '<span style="color: #0000AA">', // 深蓝色
-            '§2': '<span style="color: #00AA00">', // 深绿色
-            '§3': '<span style="color: #00AAAA">', // 淡蓝色
-            '§4': '<span style="color: #AA0000">', // 深红色
-            '§5': '<span style="color: #AA00AA">', // 深紫色
-            '§6': '<span style="color: #FFAA00">', // 金色
-            '§7': '<span style="color: #AAAAAA">', // 灰色
-            '§8': '<span style="color: #555555">', // 深灰色
-            '§9': '<span style="color: #5555FF">', // 蓝色
-            '§a': '<span style="color: #55FF55">', // 绿色
-            '§b': '<span style="color: #55FFFF">', // 淡青色
-            '§c': '<span style="color: #FF5555">', // 红色
-            '§d': '<span style="color: #FF55FF">', // 紫色
-            '§e': '<span style="color: #FFFF55">', // 黄色
-            '§f': '<span style="color: #FFFFFF">', // 白色
-            '§l': '<span style="font-weight: bold">', // 粗体
-            '§m': '<span style="text-decoration: line-through">', // 删除线
-            '§n': '<span style="text-decoration: underline">', // 下划线
-            '§o': '<span style="font-style: italic">', // 斜体
-            '§r': '</span>' // 重置所有格式
-        };
-
-        let result = text;
-        // 替换所有颜色代码
-        for (const [code, replacement] of Object.entries(colorMap)) {
-            result = result.replace(new RegExp(code, 'g'), replacement);
-        }
-
-        return result;
+/**
+ * 解析Minecraft颜色代码
+ * 将Minecraft中的§颜色代码转换为HTML样式
+ * @param {string} text - 包含Minecraft颜色代码的文本
+ * @returns {string} - 转换后的HTML文本
+ */
+function parseMinecraftColors(text) {
+    log('工具函数', '开始解析Minecraft颜色代码', '颜色代码解析');
+    if (!text) {
+        log('工具函数', '输入文本为空，返回空字符串', '颜色代码解析');
+        return '';
     }
 
-    // =============================================================================
-    // UI生成函数
-    // =============================================================================
+    // Minecraft颜色代码映射表
+    const colorMap = {
+        '§0': '<span style="color: #000000">', // 黑色
+        '§1': '<span style="color: #0000AA">', // 深蓝色
+        '§2': '<span style="color: #00AA00">', // 深绿色
+        '§3': '<span style="color: #00AAAA">', // 淡蓝色
+        '§4': '<span style="color: #AA0000">', // 深红色
+        '§5': '<span style="color: #AA00AA">', // 深紫色
+        '§6': '<span style="color: #FFAA00">', // 金色
+        '§7': '<span style="color: #AAAAAA">', // 灰色
+        '§8': '<span style="color: #555555">', // 深灰色
+        '§9': '<span style="color: #5555FF">', // 蓝色
+        '§a': '<span style="color: #55FF55">', // 绿色
+        '§b': '<span style="color: #55FFFF">', // 淡青色
+        '§c': '<span style="color: #FF5555">', // 红色
+        '§d': '<span style="color: #FF55FF">', // 紫色
+        '§e': '<span style="color: #FFFF55">', // 黄色
+        '§f': '<span style="color: #FFFFFF">', // 白色
+        '§l': '<span style="font-weight: bold">', // 粗体
+        '§m': '<span style="text-decoration: line-through">', // 删除线
+        '§n': '<span style="text-decoration: underline">', // 下划线
+        '§o': '<span style="font-style: italic">', // 斜体
+        '§r': '</span>' // 重置所有格式
+    };
 
-    /**
-     * 创建服务器卡片HTML
-     * @param {Object} server - 服务器信息对象
-     * @returns {string} - 服务器卡片的HTML字符串
-     */
-    function createServerCard(server) {
-        return `
-            <div class="server-card" data-host="${server.host}">
-                <div class="server-image-container">
-                    <img class="server-image" src="${server.image}" alt="${server.name}服务器MOTD">
-                    <div class="server-status">
-                        <span class="status-dot"></span>
-                        <span class="online-text">加载中...</span>
+    log('工具函数', '开始替换颜色代码', '颜色代码解析');
+    let result = text;
+    // 替换所有颜色代码
+    for (const [code, replacement] of Object.entries(colorMap)) {
+        result = result.replace(new RegExp(code, 'g'), replacement);
+    }
+
+    log('工具函数', '颜色代码解析完成', '颜色代码解析');
+    return result;
+}
+
+/**
+ * 创建提示信息
+ * @param {string} message - 提示信息内容
+ * @param {string} type - 提示类型（默认为info）
+ * @returns {HTMLElement} - 提示信息元素
+ */
+function createToast(message, type = 'info') {
+    log('提示信息', `创建${type}类型提示: ${message}`, '提示信息创建');
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    // 添加到页面
+    document.body.appendChild(toast);
+
+    // 显示动画
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    }, 10);
+
+    // 自动隐藏
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+
+    return toast;
+}
+
+/**
+ * 尝试连接到Minecraft服务器
+ * @param {string} host - 服务器主机地址
+ */
+function connectToServer(host) {
+    log('服务器连接', `尝试连接到服务器: ${host}`, '开始连接');
+
+    // 创建跳转链接
+    const url = `mcping://${host}`;
+
+    // 创建美化的连接提示
+    const toast = createToast(`正在连接到 ${host}...`, 'info');
+    
+    // 添加加载动画
+    const toastContent = toast.querySelector('.toast-content');
+    toastContent.innerHTML = `
+        <div class="connecting-indicator">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>正在连接到 ${host}...</span>
+        </div>
+        <div class="connecting-progress">
+            <div class="progress-bar"></div>
+        </div>
+    `;
+    
+    // 打开链接
+    setTimeout(() => {
+        try {
+            // 直接创建a标签并触发点击
+            log('服务器连接', '创建a标签并触发点击', '连接尝试');
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // 连接成功后更新提示
+            toastContent.innerHTML = `
+                <div class="connecting-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>已启动连接，请等待...</span>
+                </div>
+            `;
+            
+            // 3秒后隐藏提示
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        } catch (error) {
+            log('服务器连接', `连接失败: ${error.message}`, '错误处理');
+            console.error('[服务器连接] 连接失败:', error);
+            
+            // 连接失败后更新提示
+            toastContent.innerHTML = `
+                <div class="connecting-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>连接失败，请检查网络</span>
+                </div>
+            `;
+            toast.classList.remove('toast-info');
+            toast.classList.add('toast-error');
+            
+            // 3秒后隐藏提示
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+    }, 1000);
+}
+
+// =============================================================================
+// 3. DOM元素获取
+// =============================================================================
+
+// 获取页面主要DOM元素
+const DOM_ELEMENTS = {
+    serverList: document.getElementById('serverList'),        // 服务器列表容器
+    gridViewBtn: document.getElementById('cardViewBtn'),     // 卡片视图按钮
+    listViewBtn: document.getElementById('listViewBtn'),     // 列表视图按钮
+    main: document.querySelector('main'),                  // 主内容区域
+    searchInput: document.getElementById('searchInput'),     // 搜索输入框
+    themeToggle: document.getElementById('themeToggle'),     // 主题切换按钮
+    clearSearch: document.getElementById('clearSearch'),    // 清除搜索按钮
+    performSearch: document.getElementById('performSearch') // 执行搜索按钮
+};
+
+log('DOM元素', '获取页面主要DOM元素', '初始化');
+
+// =============================================================================
+// 4. 服务器卡片相关函数
+// =============================================================================
+
+/**
+ * 创建服务器卡片HTML
+ * @param {Object} server - 服务器信息对象
+ * @returns {string} - 服务器卡片的HTML字符串
+ */
+function createServerCard(server) {
+    log('服务器卡片', `创建服务器卡片: ${server.name}`, '卡片生成');
+    return `
+        <div class="server-card" data-host="${server.host}">
+            <div class="server-image-container">
+                <img class="server-image" src="${server.image}" alt="${server.name}服务器MOTD">
+                <div class="server-status">
+                    <span class="status-dot"></span>
+                    <span class="online-text">加载中...</span>
+                </div>
+            </div>
+            <div class="server-content">
+                <h3>
+                    <span class="server-name">${server.name}</span>
+                    <span class="server-ip">${server.host}</span>
+                </h3>
+                <div class="server-info">
+                    <div class="info-item" title="在线人数">
+                        <i class="fas fa-users"></i>
+                        <span class="online-count">加载中...</span>
+                    </div>
+                    <div class="info-item" title="服务器版本">
+                        <i class="fas fa-plug"></i>
+                        <span class="server-version">加载中...</span>
+                    </div>
+                    <div class="info-item" title="延迟">
+                        <i class="fas fa-signal"></i>
+                        <span class="server-ping">--</span>ms
+                    </div>
+                    <div class="info-item" title="游戏模式">
+                        <i class="fas fa-gamepad"></i>
+                        <span class="server-gamemode">加载中...</span>
+                    </div>
+                    <div class="info-item" title="服务器ID" style="display: none;">
+                        <i class="fas fa-fingerprint"></i>
+                        <span class="server-id">加载中...</span>
                     </div>
                 </div>
-                <div class="server-content">
-                    <h3>
-                        <span class="server-name">${server.name}</span>
-                        <span class="server-ip">${server.host}</span>
-                    </h3>
-                    <div class="server-info">
-                        <div class="info-item" title="在线人数">
-                            <i class="fas fa-users"></i>
-                            <span class="online-count">加载中...</span>
-                        </div>
-                        <div class="info-item" title="服务器版本">
-                            <i class="fas fa-plug"></i>
-                            <span class="server-version">加载中...</span>
-                        </div>
-                        <div class="info-item" title="延迟">
-                            <i class="fas fa-signal"></i>
-                            <span class="server-ping">--</span>ms
-                        </div>
-                        <div class="info-item" title="游戏模式">
-                            <i class="fas fa-gamepad"></i>
-                            <span class="server-gamemode">加载中...</span>
-                        </div>
-                        <div class="info-item" title="服务器ID" style="display: none;">
-                            <i class="fas fa-fingerprint"></i>
-                            <span class="server-id">加载中...</span>
-                        </div>
-                    </div>
-                    <p class="server-description motd-text">${server.motd}</p>
+                <p class="server-description motd-text">${server.motd}</p>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * 更新单个服务器卡片信息
+ * @param {HTMLElement} card - 服务器卡片DOM元素
+ */
+async function updateServerCard(card) {
+    log('服务器信息', '开始更新服务器卡片信息', '卡片更新');
+    const host = card.getAttribute('data-host');
+    log('服务器信息', `卡片主机名：${host}`, '卡片更新');
+
+    // 检查主机名是否存在
+    if (!host) {
+        log('服务器信息', '卡片缺少data-host属性', '卡片更新-错误');
+        console.warn('[服务器信息] 卡片缺少data-host属性');
+        return;
+    }
+
+    // 获取卡片中的DOM元素
+    const statusElem = card.querySelector('.online-text');
+    const statusDot = card.querySelector('.status-dot');
+    const countElem = card.querySelector('.online-count');
+    const versionElem = card.querySelector('.server-version');
+    const pingElem = card.querySelector('.server-ping');
+    const gamemodeElem = card.querySelector('.server-gamemode');
+    const motdElem = card.querySelector('.motd-text');
+
+    // 检查所有必要的元素是否存在
+    if (!statusElem || !countElem || !versionElem || !pingElem || !gamemodeElem) {
+        log('服务器信息', '服务器卡片中缺少必要的元素', '卡片更新-错误');
+        console.error('[服务器信息] 服务器卡片中缺少必要的元素：', {
+            statusElem: !!statusElem,
+            countElem: !!countElem,
+            versionElem: !!versionElem,
+            pingElem: !!pingElem,
+            gamemodeElem: !!gamemodeElem,
+            motdElem: !!motdElem
+        });
+        return;
+    }
+
+    // 显示加载状态
+    log('服务器信息', '设置加载状态', '卡片更新');
+    statusElem.textContent = '查询中...';
+
+    try {
+        // 获取服务器信息
+        log('服务器信息', '开始获取服务器信息', 'API请求');
+        const data = await fetchServerInfo(host);
+
+        // 如果服务器在线，更新服务器信息
+        if (data && data.status === 'online') {
+            log('服务器信息', '服务器在线，更新卡片信息', '卡片更新');
+            console.log('[服务器信息] 开始更新服务器信息：', data);
+            statusElem.textContent = '在线';
+
+            // 设置在线状态图标
+            if (statusDot) {
+                statusDot.className = 'online-dot';
+            }
+
+            countElem.textContent = `${data.online || 0}/${data.max || 0}`;
+            log('服务器信息', `在线人数：${data.online || 0}/${data.max || 0}`, '卡片更新');
+            versionElem.textContent = data.version || '未知';
+            log('服务器信息', `版本：${data.version || '未知'}`, '卡片更新');
+            pingElem.textContent = data.delay || '--';
+            log('服务器信息', `延迟：${data.delay || '--'}ms`, '卡片更新');
+            gamemodeElem.textContent = data.gamemode || '未知';
+            log('服务器信息', `游戏模式：${data.gamemode || '未知'}`, '卡片更新');
+
+            // 显示服务器唯一ID
+            const serverIdElem = card.querySelector('.server-id');
+            if (serverIdElem) {
+                serverIdElem.textContent = data.serverId || '未知';
+                log('服务器信息', `服务器唯一ID：${data.serverId || '未知'}`, '卡片更新');
+            }
+
+            // 解析MOTD颜色代码
+            if (motdElem) {
+                log('MOTD显示', '正在显示服务器MOTD', 'MOTD处理');
+                console.log('[MOTD显示] 正在显示服务器MOTD：', data.motd);
+
+                // 新API返回的是原始MOTD文本，需要解析颜色代码
+                let motdHtml = '';
+                if (data.motd) {
+                    motdHtml = parseMinecraftColors(data.motd) || '欢迎来到服务器！';
+                    log('MOTD显示', '使用原始MOTD并解析颜色代码', 'MOTD处理');
+                } else {
+                    motdHtml = '欢迎来到服务器！';
+                    log('MOTD显示', '使用默认MOTD', 'MOTD处理');
+                }
+
+                motdElem.innerHTML = motdHtml;
+            }
+        } else {
+            // 服务器离线或错误状态
+            log('服务器信息', `服务器离线或错误，状态：${data.status}`, '卡片更新');
+            statusElem.textContent = data.status === 'offline' ? '离线' : '查询失败';
+
+            // 设置离线状态图标
+            if (statusDot) {
+                statusDot.className = 'offline-dot';
+            }
+
+            countElem.textContent = '0/0';
+            versionElem.textContent = '未知';
+            pingElem.textContent = '--';
+            gamemodeElem.textContent = '未知';
+
+            if (motdElem) {
+                log('MOTD显示', '服务器离线，显示默认MOTD', 'MOTD处理');
+                console.log('[MOTD显示] 服务器离线，显示默认MOTD：服务器当前离线');
+                motdElem.textContent = '服务器当前离线';
+            }
+        }
+    } catch (error) {
+        log('MOTD显示', `更新服务器卡片信息时出错: ${error.message}`, '错误处理');
+        console.error('[MOTD显示] 更新服务器卡片信息时出错:', error);
+        console.log('[MOTD显示] 无法显示服务器MOTD，请检查网络连接或服务器地址');
+        statusElem.textContent = '查询失败';
+    }
+}
+
+/**
+ * 更新所有服务器卡片信息
+ * 遍历所有服务器卡片并更新它们的信息
+ */
+function updateAllServers() {
+    log('服务器信息', '开始更新所有服务器卡片信息', '批量更新');
+    const cards = document.querySelectorAll('.server-card');
+    log('服务器信息', `找到服务器卡片数量：${cards.length}`, '批量更新');
+
+    // 如果没有找到任何服务器卡片，输出警告并返回
+    if (cards.length === 0) {
+        log('服务器信息', '未找到任何服务器卡片，请检查DOM是否已加载', '批量更新-错误');
+        console.warn('[服务器信息] 未找到任何服务器卡片，请检查DOM是否已加载');
+        return;
+    }
+
+    // 更新每个服务器卡片
+    cards.forEach((card, index) => {
+        log('服务器信息', `开始更新第${index + 1}个服务器卡片`, '批量更新');
+        const host = card.getAttribute('data-host');
+        log('服务器信息', `卡片主机名：${host}`, '批量更新');
+        updateServerCard(card);
+    });
+}
+
+// =============================================================================
+// 5. 数据获取函数
+// =============================================================================
+
+/**
+ * 从API获取服务器信息
+ * @param {string} host - 服务器主机地址:端口
+ * @returns {Promise<Object>} - 包含服务器信息的Promise对象
+ */
+async function fetchServerInfo(host) {
+    try {
+        log('MOTD请求', `正在请求服务器MOTD，地址：${host}`, 'API请求');
+
+        // 使用新的MOTD API，确保包含端口号
+        log('MOTD请求', `请求地址：${host}`, 'API请求');
+        const response = await fetch(`${API_CONFIG.baseUrl}?host=${host}`, {
+            timeout: API_CONFIG.timeout
+        });
+
+        // 检查HTTP响应状态
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // 添加API响应的调试信息
+        log('MOTD请求', 'API响应数据', 'API响应');
+        console.log('[MOTD请求] API响应数据：', data);
+
+        // 处理API响应
+        if (data.status === 'online') {
+            // 新API返回的是原始MOTD文本，需要解析颜色代码
+            const motdText = data.motd || '无法获取MOTD';
+            log('MOTD请求', `成功获取到服务器MOTD：${motdText}`, 'API响应');
+
+            // 添加服务器信息
+            log('MOTD请求', `服务器信息 - 主机名: ${data.host}, 协议版本: ${data.agreement}, 客户端版本: ${data.version}`, 'API响应');
+
+            // 返回处理后的服务器信息
+            return {
+                status: 'online',
+                online: data.online,
+                max: data.max,
+                version: data.version,
+                // 解析原始MOTD文本
+                motd: motdText,
+                // 使用API返回的延迟值
+                delay: data.delay || null,
+                gamemode: data.gamemode || '未知',
+                // 添加地图信息（level_name）
+                map: data.level_name || '未知',
+                // 添加协议版本信息（agreement）
+                protocol: data.agreement ? `协议版本 ${data.agreement}` : '未知',
+                // 添加服务器唯一ID
+                serverId: data.server_unique_id || '未知'
+            };
+
+        } else {
+            log('MOTD请求', '服务器离线，无法获取MOTD', 'API响应');
+            console.log('[MOTD请求] 服务器离线，无法获取MOTD');
+            return {
+                status: 'offline',
+                error: '服务器离线'
+            };
+        }
+    } catch (error) {
+        log('MOTD请求', `获取服务器信息时出错: ${error.message}`, '错误处理');
+        console.error('[MOTD请求] 获取服务器信息时出错:', error);
+        console.log('[MOTD请求] 无法获取服务器MOTD，可能是网络问题或服务器地址错误');
+        console.log('[MOTD请求] 请求地址：', `${API_CONFIG.baseUrl}?host=${host}`);
+        return {
+            status: 'error',
+            error: error.message || '未知错误',
+            timestamp: new Date().toISOString()
+        };
+    }
+}
+
+// =============================================================================
+// 6. UI更新函数
+// =============================================================================
+
+/**
+ * 切换视图模式（卡片视图/列表视图）
+ * @param {string} view - 视图类型，'card'或'list'
+ */
+function toggleView(view) {
+    log('视图切换', `切换到${view === 'card' ? '卡片' : '列表'}视图`, '视图切换');
+
+    if (view === 'card') {
+        // 切换到卡片视图
+        log('视图切换', '应用卡片视图样式', '视图切换');
+        DOM_ELEMENTS.main.classList.remove('list-view');
+        DOM_ELEMENTS.gridViewBtn.classList.add('active');
+        DOM_ELEMENTS.listViewBtn.classList.remove('active');
+
+        const cards = document.querySelectorAll('.server-card');
+        cards.forEach(card => {
+            card.style.animation = 'fadeInUp 0.4s forwards';
+            // 确保MOTD在卡片视图中可见并正确渲染颜色
+            const motdElement = card.querySelector('.server-description');
+            if (motdElement) {
+                motdElement.style.display = 'block';
+                // 获取原始MOTD文本并解析颜色代码
+                const host = card.getAttribute('data-host');
+                const server = SERVERS_CONFIG.find(s => s.host === host);
+                if (server) {
+                    // 新API返回的是原始MOTD文本，需要解析颜色代码
+                    let motdHtml = '';
+                    if (server.motd) {
+                        motdHtml = parseMinecraftColors(server.motd) || '欢迎来到服务器！';
+                        log('MOTD显示', '使用原始MOTD并解析颜色代码', '视图切换');
+                    } else {
+                        motdHtml = '欢迎来到服务器！';
+                        log('MOTD显示', '使用默认MOTD', '视图切换');
+                    }
+
+                    motdElement.innerHTML = motdHtml;
+                }
+            }
+        });
+    } else {
+        // 切换到列表视图
+        log('视图切换', '应用列表视图样式', '视图切换');
+        DOM_ELEMENTS.main.classList.add('list-view');
+        DOM_ELEMENTS.gridViewBtn.classList.remove('active');
+        DOM_ELEMENTS.listViewBtn.classList.add('active');
+
+        const cards = document.querySelectorAll('.server-card');
+        cards.forEach(card => {
+            card.style.animation = 'fadeInLeft 0.4s forwards';
+            // 确保MOTD在列表视图中可见并正确渲染颜色
+            const motdElement = card.querySelector('.server-description');
+            if (motdElement) {
+                motdElement.style.display = 'block';
+                motdElement.style.marginTop = '0.5rem';
+                motdElement.style.overflow = 'hidden';
+                motdElement.style.textOverflow = 'ellipsis';
+                motdElement.style.whiteSpace = 'nowrap';
+                motdElement.style.maxWidth = '100%';
+
+                // 获取原始MOTD文本并解析颜色代码
+                const host = card.getAttribute('data-host');
+                const server = SERVERS_CONFIG.find(s => s.host === host);
+                if (server) {
+                    // 新API返回的是原始MOTD文本，需要解析颜色代码
+                    let motdHtml = '';
+                    if (server.motd) {
+                        motdHtml = parseMinecraftColors(server.motd) || '欢迎来到服务器！';
+                        log('MOTD显示', '使用原始MOTD并解析颜色代码', '视图切换');
+                    } else {
+                        motdHtml = '欢迎来到服务器！';
+                        log('MOTD显示', '使用默认MOTD', '视图切换');
+                    }
+
+                    motdElement.innerHTML = motdHtml;
+                }
+            }
+        });
+    }
+
+    // 保存视图偏好到本地存储
+    log('视图切换', `保存视图偏好: ${view}到本地存储`, '视图切换');
+    localStorage.setItem('view', view);
+}
+
+// =============================================================================
+// 7. 搜索功能
+// =============================================================================
+
+/**
+ * 根据搜索词过滤服务器列表
+ * 在服务器名称、描述和IP地址中搜索匹配项
+ */
+function filterServers() {
+    if (!DOM_ELEMENTS.searchInput) {
+        log('搜索功能', '未找到搜索输入框', '搜索-错误');
+        return;
+    }
+
+    const searchTerm = DOM_ELEMENTS.searchInput.value.toLowerCase();
+    log('搜索', `开始搜索，关键词：${searchTerm}`, '搜索');
+    const cards = document.querySelectorAll('.server-card');
+    const serverList = document.querySelector('.server-list');
+
+    // 记录可见的卡片数量
+    let visibleCards = 0;
+
+    // 移除可能存在的空状态提示
+    const existingEmptyState = document.querySelector('.empty-search-state');
+    if (existingEmptyState) {
+        existingEmptyState.remove();
+    }
+
+    // 遍历所有服务器卡片，根据搜索词过滤
+    cards.forEach(card => {
+        const titleElem = card.querySelector('.server-name');
+        const descriptionElem = card.querySelector('.server-description');
+        const ipElem = card.querySelector('.server-ip');
+
+        // 检查必要的元素是否存在
+        if (!titleElem || !descriptionElem || !ipElem) {
+            log('搜索', '服务器卡片中缺少必要的元素', '搜索-错误');
+            console.error('服务器卡片中缺少必要的元素');
+            return;
+        }
+
+        // 获取文本内容并转换为小写以便搜索
+        const title = titleElem.textContent.toLowerCase();
+        const description = descriptionElem.textContent.toLowerCase();
+        const ip = ipElem.textContent.toLowerCase();
+
+        // 检查是否匹配搜索词
+        if (title.includes(searchTerm) || description.includes(searchTerm) || ip.includes(searchTerm)) {
+            card.style.display = 'flex';
+            visibleCards++;
+            log('搜索', `找到匹配的服务器：${title}`, '搜索');
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // 如果没有可见的卡片且搜索词不为空，显示空状态提示
+    if (visibleCards === 0 && searchTerm) {
+        log('搜索', '未找到匹配的服务器，显示空状态提示', '搜索');
+        console.log('[搜索] 未找到匹配的服务器，显示空状态提示');
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-search-state';
+        emptyState.style.opacity = '0';
+        emptyState.style.transform = 'translateY(20px)';
+        emptyState.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+
+        emptyState.innerHTML = `
+            <div class="mdui-col-sm-12 mdui-col-md-12">
+                <div class="empty-state">
+                    <i class="fas fa-search" style="font-size: 48px; color: var(--gray); margin-bottom: 1rem; animation: pulse 2s infinite;"></i>
+                    <h3>没有找到匹配的服务器</h3>
+                    <p>尝试使用不同的关键词搜索</p>
+                    <button class="btn btn-primary" id="clearSearchBtn">
+                        <i class="fas fa-times"></i> 清除搜索
+                    </button>
                 </div>
             </div>
         `;
-    }
 
-    // =============================================================================
-    // 数据获取和处理函数
-    // =============================================================================
+        serverList.appendChild(emptyState);
 
-    /**
-     * 从API获取服务器信息
-     * @param {string} host - 服务器主机地址:端口
-     * @returns {Promise<Object>} - 包含服务器信息的Promise对象
-     */
-    async function fetchServerInfo(host) {
-        try {
-            console.log('[MOTD请求] 正在请求服务器MOTD，地址：', host);
+        // 添加动画效果
+        setTimeout(() => {
+            emptyState.style.opacity = '1';
+            emptyState.style.transform = 'translateY(0)';
+        }, 10);
 
-            // 使用新的MOTD API，确保包含端口号
-            console.log('[MOTD请求] 请求地址：', host);
-            const response = await fetch(`${API_CONFIG.baseUrl}?host=${host}`, {
-                timeout: API_CONFIG.timeout
-            });
-
-            // 检查HTTP响应状态
-            if (!response.ok) {
-                throw new Error(`HTTP错误! 状态: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // 添加API响应的调试信息
-            console.log('[MOTD请求] API响应数据：', data);
-
-            // 处理API响应
-            if (data.status === 'online') {
-                // 新API返回的是原始MOTD文本，需要解析颜色代码
-                const motdText = data.motd || '无法获取MOTD';
-                console.log('[MOTD请求] 成功获取到服务器MOTD：', motdText);
-
-                // 添加服务器信息
-                console.log('[MOTD请求] 服务器信息 - 主机名:', data.host, ', 协议版本:', data.agreement, ', 客户端版本:', data.version);
-
-                // 返回处理后的服务器信息
-                return {
-                    status: 'online',
-                    online: data.online,
-                    max: data.max,
-                    version: data.version,
-                    // 解析原始MOTD文本
-                    motd: motdText,
-                    // 使用API返回的延迟值
-                    delay: data.delay || null,
-                    gamemode: data.gamemode || '未知',
-                    // 添加地图信息（level_name）
-                    map: data.level_name || '未知',
-                    // 添加协议版本信息（agreement）
-                    protocol: data.agreement ? `协议版本 ${data.agreement}` : '未知',
-                    // 添加服务器唯一ID
-                    serverId: data.server_unique_id || '未知'
-                };
-
-            } else {
-                console.log('[MOTD请求] 服务器离线，无法获取MOTD');
-                return {
-                    status: 'offline',
-                    error: '服务器离线'
-                };
-            }
-        } catch (error) {
-            console.error('[MOTD请求] 获取服务器信息时出错:', error);
-            console.log('[MOTD请求] 无法获取服务器MOTD，可能是网络问题或服务器地址错误');
-            console.log('[MOTD请求] 请求地址：', `${API_CONFIG.baseUrl}?host=${host}`);
-            return {
-                status: 'error',
-                error: error.message || '未知错误',
-                timestamp: new Date().toISOString()
-            };
-        }
-    }
-
-    // =============================================================================
-    // UI更新函数
-    // =============================================================================
-
-    /**
-     * 更新单个服务器卡片信息
-     * @param {HTMLElement} card - 服务器卡片DOM元素
-     */
-    async function updateServerCard(card) {
-        console.log('[服务器信息] updateServerCard函数被调用');
-        const host = card.getAttribute('data-host');
-        console.log('[服务器信息] 卡片主机名：', host);
-
-        // 检查主机名是否存在
-        if (!host) {
-            console.warn('[服务器信息] 卡片缺少data-host属性');
-            return;
-        }
-
-        // 获取卡片中的DOM元素
-        const statusElem = card.querySelector('.online-text');
-        const statusDot = card.querySelector('.status-dot');
-        const countElem = card.querySelector('.online-count');
-        const versionElem = card.querySelector('.server-version');
-        const pingElem = card.querySelector('.server-ping');
-        const gamemodeElem = card.querySelector('.server-gamemode');
-        const motdElem = card.querySelector('.motd-text');
-
-        // 检查所有必要的元素是否存在
-        if (!statusElem || !countElem || !versionElem || !pingElem || !gamemodeElem) {
-            console.error('[服务器信息] 服务器卡片中缺少必要的元素：', {
-                statusElem: !!statusElem,
-                countElem: !!countElem,
-                versionElem: !!versionElem,
-                pingElem: !!pingElem,
-                gamemodeElem: !!gamemodeElem,
-                motdElem: !!motdElem
-            });
-            return;
-        }
-
-        // 显示加载状态
-        statusElem.textContent = '查询中...';
-
-        try {
-            // 获取服务器信息
-            const data = await fetchServerInfo(host);
-
-            // 如果服务器在线，更新服务器信息
-            if (data && data.status === 'online') {
-                console.log('[服务器信息] 开始更新服务器信息：', data);
-                statusElem.textContent = '在线';
-                
-                // 设置在线状态图标
-                if (statusDot) {
-                    statusDot.className = 'online-dot';
-                }
-                
-                countElem.textContent = `${data.online || 0}/${data.max || 0}`;
-                console.log('[服务器信息] 在线人数：', data.online, '/', data.max);
-                versionElem.textContent = data.version || '未知';
-                console.log('[服务器信息] 版本：', data.version);
-                pingElem.textContent = data.delay || '--';
-                console.log('[服务器信息] 延迟：', data.delay, 'ms');
-                gamemodeElem.textContent = data.gamemode || '未知';
-                console.log('[服务器信息] 游戏模式：', data.gamemode);
-
-                // 显示服务器唯一ID
-                const serverIdElem = card.querySelector('.server-id');
-                if (serverIdElem) {
-                    serverIdElem.textContent = data.serverId || '未知';
-                    console.log('[服务器信息] 服务器唯一ID：', data.serverId || '未知');
-                }
-
-                // 解析MOTD颜色代码
-                if (motdElem) {
-                    console.log('[MOTD显示] 正在显示服务器MOTD：', data.motd);
-
-                    // 新API返回的是原始MOTD文本，需要解析颜色代码
-                    let motdHtml = '';
-                    if (data.motd) {
-                        motdHtml = parseMinecraftColors(data.motd) || '欢迎来到服务器！';
-                        console.log('[MOTD显示] 使用原始MOTD并解析颜色代码');
-                    } else {
-                        motdHtml = '欢迎来到服务器！';
-                        console.log('[MOTD显示] 使用默认MOTD');
-                    }
-
-                    motdElem.innerHTML = motdHtml;
-                }
-            } else {
-                // 服务器离线或错误状态
-                statusElem.textContent = data.status === 'offline' ? '离线' : '查询失败';
-                
-                // 设置离线状态图标
-                if (statusDot) {
-                    statusDot.className = 'offline-dot';
-                }
-                
-                countElem.textContent = '0/0';
-                versionElem.textContent = '未知';
-                pingElem.textContent = '--';
-                gamemodeElem.textContent = '未知';
-
-                if (motdElem) {
-                    console.log('[MOTD显示] 服务器离线，显示默认MOTD：服务器当前离线');
-                    motdElem.textContent = '服务器当前离线';
-                }
-            }
-        } catch (error) {
-            console.error('[MOTD显示] 更新服务器卡片信息时出错:', error);
-            console.log('[MOTD显示] 无法显示服务器MOTD，请检查网络连接或服务器地址');
-            statusElem.textContent = '查询失败';
-        }
-    }
-
-    /**
-     * 更新所有服务器卡片信息
-     * 遍历所有服务器卡片并更新它们的信息
-     */
-    function updateAllServers() {
-        console.log('[服务器信息] updateAllServers函数被调用');
-        const cards = document.querySelectorAll('.server-card');
-        console.log('[服务器信息] 找到服务器卡片数量：', cards.length);
-
-        // 如果没有找到任何服务器卡片，输出警告并返回
-        if (cards.length === 0) {
-            console.warn('[服务器信息] 未找到任何服务器卡片，请检查DOM是否已加载');
-            return;
-        }
-
-        // 更新每个服务器卡片
-        cards.forEach((card, index) => {
-            console.log(`[服务器信息] 开始更新第${index + 1}个服务器卡片，主机名：`, card.getAttribute('data-host'));
-            updateServerCard(card);
-        });
-    }
-
-    // =============================================================================
-    // 视图和交互功能
-    // =============================================================================
-
-    /**
-     * 切换视图模式（卡片视图/列表视图）
-     * @param {string} view - 视图类型，'card'或'list'
-     */
-    function toggleView(view) {
-        if (view === 'card') {
-            // 切换到卡片视图
-            main.classList.remove('list-view');
-            gridViewBtn.classList.add('active');
-            listViewBtn.classList.remove('active');
-
-            const cards = document.querySelectorAll('.server-card');
-            cards.forEach(card => {
-                card.style.animation = 'fadeInUp 0.4s forwards';
-                // 确保MOTD在卡片视图中可见并正确渲染颜色
-                const motdElement = card.querySelector('.server-description');
-                if (motdElement) {
-                    motdElement.style.display = 'block';
-                    // 获取原始MOTD文本并解析颜色代码
-                    const host = card.getAttribute('data-host');
-                    const server = servers.find(s => s.host === host);
-                    if (server) {
-                        // 新API返回的是原始MOTD文本，需要解析颜色代码
-                        let motdHtml = '';
-                        if (server.motd) {
-                            motdHtml = parseMinecraftColors(server.motd) || '欢迎来到服务器！';
-                            console.log('[MOTD显示] 使用原始MOTD并解析颜色代码');
-                        } else {
-                            motdHtml = '欢迎来到服务器！';
-                            console.log('[MOTD显示] 使用默认MOTD');
-                        }
-
-                        motdElement.innerHTML = motdHtml;
-                    }
-                }
-            });
-        } else {
-            // 切换到列表视图
-            main.classList.add('list-view');
-            gridViewBtn.classList.remove('active');
-            listViewBtn.classList.add('active');
-
-            const cards = document.querySelectorAll('.server-card');
-            cards.forEach(card => {
-                card.style.animation = 'fadeInLeft 0.4s forwards';
-                // 确保MOTD在列表视图中可见并正确渲染颜色
-                const motdElement = card.querySelector('.server-description');
-                if (motdElement) {
-                    motdElement.style.display = 'block';
-                    motdElement.style.marginTop = '0.5rem';
-                    motdElement.style.overflow = 'hidden';
-                    motdElement.style.textOverflow = 'ellipsis';
-                    motdElement.style.whiteSpace = 'nowrap';
-                    motdElement.style.maxWidth = '100%';
-
-                    // 获取原始MOTD文本并解析颜色代码
-                    const host = card.getAttribute('data-host');
-                    const server = servers.find(s => s.host === host);
-                    if (server) {
-                        // 新API返回的是原始MOTD文本，需要解析颜色代码
-                        let motdHtml = '';
-                        if (server.motd) {
-                            motdHtml = parseMinecraftColors(server.motd) || '欢迎来到服务器！';
-                            console.log('[MOTD显示] 使用原始MOTD并解析颜色代码');
-                        } else {
-                            motdHtml = '欢迎来到服务器！';
-                            console.log('[MOTD显示] 使用默认MOTD');
-                        }
-
-                        motdElement.innerHTML = motdHtml;
-                    }
-                }
-            });
-        }
-
-        // 保存视图偏好到本地存储
-        localStorage.setItem('view', view);
-    }
-
-    // =============================================================================
-    // 搜索功能
-    // =============================================================================
-
-    /**
-     * 根据搜索词过滤服务器列表
-     * 在服务器名称、描述和IP地址中搜索匹配项
-     */
-    function filterServers() {
-        if (!searchInput) return;
-
-        const searchTerm = searchInput.value.toLowerCase();
-        console.log('[搜索] 开始搜索，关键词：', searchTerm);
-        const cards = document.querySelectorAll('.server-card');
-        const serverList = document.querySelector('.server-list');
-
-        // 记录可见的卡片数量
-        let visibleCards = 0;
-
-        // 移除可能存在的空状态提示
-        const existingEmptyState = document.querySelector('.empty-search-state');
-        if (existingEmptyState) {
-            existingEmptyState.remove();
-        }
-
-        // 遍历所有服务器卡片，根据搜索词过滤
-        cards.forEach(card => {
-            const titleElem = card.querySelector('.server-name');
-            const descriptionElem = card.querySelector('.server-description');
-            const ipElem = card.querySelector('.server-ip');
-
-            // 检查必要的元素是否存在
-            if (!titleElem || !descriptionElem || !ipElem) {
-                console.error('服务器卡片中缺少必要的元素');
-                return;
-            }
-
-            // 获取文本内容并转换为小写以便搜索
-            const title = titleElem.textContent.toLowerCase();
-            const description = descriptionElem.textContent.toLowerCase();
-            const ip = ipElem.textContent.toLowerCase();
-
-            // 检查是否匹配搜索词
-            if (title.includes(searchTerm) || description.includes(searchTerm) || ip.includes(searchTerm)) {
-                card.style.display = 'flex';
-                visibleCards++;
-                console.log('[搜索] 找到匹配的服务器：', title);
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        // 如果没有可见的卡片且搜索词不为空，显示空状态提示
-        if (visibleCards === 0 && searchTerm) {
-            console.log('[搜索] 未找到匹配的服务器，显示空状态提示');
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-search-state';
+        // 为清除搜索按钮添加事件监听器
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+            log('搜索', '用户点击了清除搜索按钮', '搜索');
+            // 添加淡出动画
             emptyState.style.opacity = '0';
             emptyState.style.transform = 'translateY(20px)';
-            emptyState.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
 
-            emptyState.innerHTML = `
-                <div class="mdui-col-sm-12 mdui-col-md-12">
-                    <div class="empty-state">
-                        <i class="fas fa-search" style="font-size: 48px; color: var(--gray); margin-bottom: 1rem; animation: pulse 2s infinite;"></i>
-                        <h3>没有找到匹配的服务器</h3>
-                        <p>尝试使用不同的关键词搜索</p>
-                        <button class="btn btn-primary" id="clearSearchBtn">
-                            <i class="fas fa-times"></i> 清除搜索
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            serverList.appendChild(emptyState);
-
-            // 添加动画效果
+            // 等待动画完成后移除元素
             setTimeout(() => {
-                emptyState.style.opacity = '1';
-                emptyState.style.transform = 'translateY(0)';
-            }, 10);
+                log('搜索', '清除搜索内容并重置显示', '搜索');
+                console.log('[搜索] 清除搜索内容并重置显示');
+                DOM_ELEMENTS.searchInput.value = '';
+                filterServers();
+                DOM_ELEMENTS.searchInput.focus();
+            }, 500);
+        });
+    }
+}
 
-            // 为清除搜索按钮添加事件监听器
-            document.getElementById('clearSearchBtn').addEventListener('click', () => {
-                console.log('[搜索] 用户点击了清除搜索按钮');
-                // 添加淡出动画
-                emptyState.style.opacity = '0';
-                emptyState.style.transform = 'translateY(20px)';
+// =============================================================================
+// 8. 主题功能
+// =============================================================================
 
-                // 等待动画完成后移除元素
-                setTimeout(() => {
-                    console.log('[搜索] 清除搜索内容并重置显示');
-                    searchInput.value = '';
-                    filterServers();
-                    searchInput.focus();
-                }, 500);
+/**
+ * 切换主题（亮色/暗色模式）
+ */
+function toggleTheme() {
+    log('主题切换', '开始切换主题', '主题切换');
+    const themeIcon = DOM_ELEMENTS.themeToggle.querySelector('i');
+
+    // 切换暗色模式类
+    document.body.classList.toggle('dark-mode');
+    if (document.body.classList.contains('dark-mode')) {
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+        log('主题切换', '切换到暗色模式', '主题切换');
+    } else {
+        themeIcon.classList.remove('fa-sun');
+        themeIcon.classList.add('fa-moon');
+        log('主题切换', '切换到亮色模式', '主题切换');
+    }
+
+    // 保存主题偏好到本地存储
+    log('主题切换', `保存主题偏好: ${document.body.classList.contains('dark-mode') ? 'dark' : 'light'}到本地存储`, '主题切换');
+    localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+}
+
+// =============================================================================
+// 9. 应用初始化
+// =============================================================================
+
+/**
+ * 加载服务器列表
+ * 根据SERVERS_CONFIG数组创建服务器卡片并添加到页面中
+ */
+function loadServers() {
+    log('服务器列表', '开始加载服务器列表', '初始化');
+
+    // 确保服务器列表容器存在
+    if (!DOM_ELEMENTS.serverList) {
+        log('服务器列表', '未找到服务器列表容器', '初始化-错误');
+        console.error('[服务器列表] 未找到服务器列表容器');
+        return;
+    }
+
+    // 清空现有内容
+    DOM_ELEMENTS.serverList.innerHTML = '';
+
+    // 创建服务器卡片
+    SERVERS_CONFIG.forEach(server => {
+        const cardHtml = createServerCard(server);
+        DOM_ELEMENTS.serverList.insertAdjacentHTML('beforeend', cardHtml);
+        log('服务器列表', `已添加服务器卡片: ${server.name} (${server.host})`, '初始化');
+    });
+
+    // 触发服务器列表加载完成事件
+    log('服务器列表', '服务器列表加载完成，触发事件', '初始化');
+    console.log('[服务器列表] 服务器列表加载完成，触发事件');
+    const event = new Event('serversLoaded');
+    document.dispatchEvent(event);
+}
+
+/**
+ * 初始化应用
+ * 设置事件监听器、加载默认数据和应用用户偏好
+ */
+function initializeApp() {
+    log('应用初始化', '开始初始化应用', '初始化');
+
+    // 加载服务器列表
+    log('应用初始化', '加载服务器列表', '初始化');
+    loadServers();
+
+    // 初始化服务器状态
+    log('应用初始化', '更新所有服务器状态', '初始化');
+    updateAllServers();
+
+    // 添加视图切换事件监听器
+    if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
+        log('应用初始化', '添加视图切换事件监听器', '初始化');
+        DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => toggleView('card'));
+        DOM_ELEMENTS.listViewBtn.addEventListener('click', () => toggleView('list'));
+
+        // 检查保存的视图偏好
+        const savedView = localStorage.getItem('view');
+        log('应用初始化', `检查保存的视图偏好: ${savedView}`, '初始化');
+        if (savedView === 'list') {
+            toggleView('list');
+        }
+    }
+
+    // 搜索事件监听器
+    if (DOM_ELEMENTS.searchInput) {
+        log('应用初始化', '添加搜索事件监听器', '初始化');
+        // 输入时自动搜索
+        DOM_ELEMENTS.searchInput.addEventListener('input', filterServers);
+
+        // 清除搜索按钮
+        if (DOM_ELEMENTS.clearSearch) {
+            DOM_ELEMENTS.clearSearch.addEventListener('click', () => {
+                log('搜索', '用户点击了清除搜索按钮', '搜索');
+                DOM_ELEMENTS.searchInput.value = '';
+                filterServers();
+                DOM_ELEMENTS.searchInput.focus();
             });
         }
-    }
 
-    // =============================================================================
-    // 主题功能
-    // =============================================================================
-
-    /**
-     * 切换主题（亮色/暗色模式）
-     */
-    function toggleTheme() {
-        const themeIcon = themeToggle.querySelector('i');
-
-        // 切换暗色模式类
-        document.body.classList.toggle('dark-mode');
-        if (document.body.classList.contains('dark-mode')) {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        } else {
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
+        // 执行搜索按钮
+        if (DOM_ELEMENTS.performSearch) {
+            DOM_ELEMENTS.performSearch.addEventListener('click', () => {
+                log('搜索', '用户点击了执行搜索按钮', '搜索');
+                filterServers();
+            });
         }
 
-        // 保存主题偏好到本地存储
-        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-    }
-
-    // =============================================================================
-    // 应用初始化
-    // =============================================================================
-
-    /**
-     * 加载服务器列表
-     * 根据servers数组创建服务器卡片并添加到页面中
-     */
-    function loadServers() {
-        console.log('[服务器列表] 开始加载服务器列表');
-        
-        // 确保服务器列表容器存在
-        if (!serverList) {
-            console.error('[服务器列表] 未找到服务器列表容器');
-            return;
-        }
-        
-        // 清空现有内容
-        serverList.innerHTML = '';
-        
-        // 创建服务器卡片
-        servers.forEach(server => {
-            const cardHtml = createServerCard(server);
-            serverList.insertAdjacentHTML('beforeend', cardHtml);
-            console.log(`[服务器列表] 已添加服务器卡片: ${server.name} (${server.host})`);
+        // 按回车键搜索
+        DOM_ELEMENTS.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                log('搜索', '用户按下了回车键执行搜索', '搜索');
+                filterServers();
+            }
         });
-        
-        // 触发服务器列表加载完成事件
-        console.log('[服务器列表] 服务器列表加载完成，触发事件');
-        const event = new Event('serversLoaded');
-        document.dispatchEvent(event);
     }
 
-    /**
-     * 初始化应用
-     * 设置事件监听器、加载默认数据和应用用户偏好
-     */
-    function initializeApp() {
-        // 加载服务器列表
-        loadServers();
+    // 主题切换
+    if (DOM_ELEMENTS.themeToggle) {
+        log('应用初始化', '添加主题切换事件监听器', '初始化');
+        DOM_ELEMENTS.themeToggle.addEventListener('click', toggleTheme);
 
-        // 初始化服务器状态
+        // 检查保存的主题偏好
+        const savedTheme = localStorage.getItem('theme');
+        log('应用初始化', `检查保存的主题偏好: ${savedTheme}`, '初始化');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            const themeIcon = DOM_ELEMENTS.themeToggle.querySelector('i');
+            if (themeIcon) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        }
+    }
+}
+
+// =============================================================================
+// 10. 服务器卡片点击处理
+// =============================================================================
+
+// 定义点击事件处理函数
+function handleServerCardClick(event) {
+    // 检查点击的元素是否是服务器卡片或者是服务器卡片内的元素
+    let card = event.target.closest('.server-card');
+    if (!card) return;
+
+    // 获取服务器主机地址
+    const host = card.getAttribute('data-host');
+    if (host) {
+        log('服务器点击', `用户点击了服务器: ${host}`, '点击处理');
+        connectToServer(host);
+    }
+}
+
+/**
+ * 添加服务器卡片点击跳转功能
+ */
+function addServerCardClickHandlers() {
+    log('服务器点击', '开始绑定服务器卡片点击事件', '事件绑定');
+
+    // 使用事件委托，在父元素上监听点击事件
+    const serverList = DOM_ELEMENTS.serverList;
+    if (!serverList) {
+        log('服务器点击', '未找到服务器列表容器', '事件绑定-错误');
+        console.warn('[服务器点击] 未找到服务器列表容器');
+        return;
+    }
+
+    // 移除可能已存在的事件监听器，避免重复绑定
+    serverList.removeEventListener('click', handleServerCardClick);
+
+
+    // 添加事件监听器
+    serverList.addEventListener('click', handleServerCardClick);
+
+    // 添加指针样式到所有服务器卡片
+    const serverCards = document.querySelectorAll('.server-card');
+    serverCards.forEach(card => {
+        card.style.cursor = 'pointer';
+    });
+
+    log('服务器点击', `已绑定 ${serverCards.length} 个服务器卡片的点击事件`, '事件绑定');
+}
+
+// =============================================================================
+// 11. 应用启动
+// =============================================================================
+
+// 监听服务器列表加载完成事件
+document.addEventListener('serversLoaded', () => {
+    log('应用启动', '服务器列表加载完成，开始更新服务器信息', '启动');
+    console.log('[服务器信息] 服务器列表加载完成，开始更新服务器信息');
+
+    // 应用当前视图设置
+    const savedView = localStorage.getItem('view');
+    log('应用启动', `应用当前视图设置: ${savedView || 'card'}`, '启动');
+    if (savedView === 'list') {
+        toggleView('list');
+    } else {
+        toggleView('card');
+    }
+
+    // 更新所有服务器卡片信息
+    setTimeout(() => {
+        log('应用启动', '开始批量更新服务器卡片信息', '启动');
+        console.log('[服务器信息] 开始批量更新服务器卡片信息');
         updateAllServers();
 
-        // 添加视图切换事件监听器
-        if (gridViewBtn && listViewBtn) {
-            gridViewBtn.addEventListener('click', () => toggleView('card'));
-            listViewBtn.addEventListener('click', () => toggleView('list'));
+        // 添加服务器卡片点击处理程序
+        setTimeout(() => {
+            log('应用启动', '添加服务器卡片点击处理程序', '启动');
+            addServerCardClickHandlers();
 
-            // 检查保存的视图偏好
-            if (localStorage.getItem('view') === 'list') {
-                toggleView('list');
-            }
-        }
+            // 在视图切换时重新绑定点击事件
+            if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
+                log('应用启动', '添加视图切换时的点击事件重新绑定', '启动');
+                DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => {
+                    setTimeout(addServerCardClickHandlers, 100);
+                });
 
-        // 搜索事件监听器
-        if (searchInput) {
-            // 输入时自动搜索
-            searchInput.addEventListener('input', filterServers);
-
-            // 清除搜索按钮
-            const clearSearch = document.getElementById('clearSearch');
-            if (clearSearch) {
-                clearSearch.addEventListener('click', () => {
-                    searchInput.value = '';
-                    filterServers();
-                    searchInput.focus();
+                DOM_ELEMENTS.listViewBtn.addEventListener('click', () => {
+                    setTimeout(addServerCardClickHandlers, 100);
                 });
             }
+        }, 1500);
+    }, 1000); // 延迟1秒确保DOM已渲染完成
+});
 
-            // 执行搜索按钮
-            const performSearch = document.getElementById('performSearch');
-            if (performSearch) {
-                performSearch.addEventListener('click', () => {
-                    console.log('[搜索] 用户点击了执行搜索按钮');
-                    filterServers();
-                });
-            }
+// 在DOM加载完成后添加点击事件监听
+document.addEventListener('DOMContentLoaded', function () {
+    log('应用启动', 'DOM加载完成，准备添加服务器卡片点击事件', '启动');
+    console.log('[初始化] DOM加载完成，准备添加服务器卡片点击事件');
 
-            // 按回车键搜索
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    console.log('[搜索] 用户按下了回车键执行搜索');
-                    filterServers();
-                }
+    // 等待服务器列表加载完成
+    setTimeout(() => {
+        log('应用启动', '开始添加服务器卡片点击事件', '启动');
+        console.log('[初始化] 开始添加服务器卡片点击事件');
+        addServerCardClickHandlers();
+
+        // 在视图切换时重新绑定点击事件
+        if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
+            log('应用启动', '添加视图切换时的点击事件重新绑定', '启动');
+            DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => {
+                setTimeout(addServerCardClickHandlers, 100);
+            });
+
+            DOM_ELEMENTS.listViewBtn.addEventListener('click', () => {
+                setTimeout(addServerCardClickHandlers, 100);
             });
         }
+    }, 2000); // 等待2秒确保所有元素都已加载
 
-        // 主题切换
-        if (themeToggle) {
-            themeToggle.addEventListener('click', toggleTheme);
-
-            // 检查保存的主题偏好
-            if (localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-mode');
-                const themeIcon = themeToggle.querySelector('i');
-                if (themeIcon) {
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
-                }
-            }
-        }
-
-        // 监听服务器列表加载完成事件
-        document.addEventListener('serversLoaded', () => {
-            console.log('[服务器信息] 服务器列表加载完成，开始更新服务器信息');
-            // 应用当前视图设置
-            if (localStorage.getItem('view') === 'list') {
-                toggleView('list');
-            } else {
-                toggleView('card');
-            }
-
-            // 更新所有服务器卡片信息
-            setTimeout(() => {
-                console.log('[服务器信息] 开始批量更新服务器卡片信息');
-                updateAllServers();
-            }, 1000); // 延迟1秒确保DOM已渲染完成
-        });
-    }
-
-    // =============================================================================
-    // 启动应用
-    // =============================================================================
-
-    // 调用初始化函数启动应用
+    // 初始化应用
+    log('应用启动', '调用初始化函数', '启动');
     initializeApp();
-    console.log('BDSGP 服务器列表已加载');
 });
+
+log('应用启动', 'BDSGP 服务器列表已加载', '启动');
+console.log('BDSGP 服务器列表已加载');

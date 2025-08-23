@@ -467,9 +467,11 @@ main {
     0% {
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
     }
+
     70% {
         box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
     }
+
     100% {
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
@@ -479,9 +481,11 @@ main {
     0% {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
     }
+
     70% {
         box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
     }
+
     100% {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
@@ -607,17 +611,23 @@ main {
 }
 
 .list-view .server-image-container {
-    width: 200px; /* 减小宽度以适应一行两个服务器 */
-    height: 100%; /* 使用100%高度确保与父div完全匹配 */
+    width: 200px;
+    /* 减小宽度以适应一行两个服务器 */
+    height: 100%;
+    /* 使用100%高度确保与父div完全匹配 */
     flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    margin: 0; /* 确保没有外边距 */
-    padding: 0; /* 确保没有内边距 */
-    border-radius: 0; /* 确保容器没有圆角 */
-    box-sizing: border-box; /* 确保边框和内边距包含在高度计算中 */
+    margin: 0;
+    /* 确保没有外边距 */
+    padding: 0;
+    /* 确保没有内边距 */
+    border-radius: 0;
+    /* 确保容器没有圆角 */
+    box-sizing: border-box;
+    /* 确保边框和内边距包含在高度计算中 */
 }
 
 .list-view .server-image {
@@ -625,10 +635,14 @@ main {
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s ease;
-    display: block; /* 确保图片是块级元素 */
-    margin: 0; /* 确保图片没有外边距 */
-    border: none; /* 确保图片没有边框 */
-    transform: translateZ(0); /* 防止图片边缘出现间隙 */
+    display: block;
+    /* 确保图片是块级元素 */
+    margin: 0;
+    /* 确保图片没有外边距 */
+    border: none;
+    /* 确保图片没有边框 */
+    transform: translateZ(0);
+    /* 防止图片边缘出现间隙 */
 }
 
 .list-view .server-card:hover .server-image {
@@ -641,7 +655,8 @@ main {
     flex-direction: column;
     justify-content: center;
     padding: 1.2rem;
-    overflow: hidden; /* 防止内容溢出 */
+    overflow: hidden;
+    /* 防止内容溢出 */
 }
 
 .list-view .server-description {
@@ -772,10 +787,12 @@ footer {
         transform: scale(1);
         opacity: 1;
     }
+
     50% {
         transform: scale(1.1);
         opacity: 0.7;
     }
+
     100% {
         transform: scale(1);
         opacity: 1;
@@ -818,3 +835,224 @@ footer {
     font-size: 1rem;
 }
 
+/* Toast提示基本样式 */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    opacity: 0;
+    max-width: 90%;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toast-info {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.toast-success {
+    background: rgba(16, 185, 129, 0.9);
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.toast-error {
+    background: rgba(239, 68, 68, 0.9);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+.toast-info i {
+    color: #6366f1;
+}
+
+.toast-success i {
+    color: #10b981;
+}
+
+.toast-error i {
+    color: #ef4444;
+}
+
+/* 服务器连接提示样式 */
+.server-connect-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    opacity: 0;
+    max-width: 90%;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    /* 确保提示不会阻止点击事件 */
+}
+
+.server-connect-toast i {
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+.server-connect-toast span {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* 连接提示指示器样式 */
+.connecting-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+    width: 100%;
+    pointer-events: none;
+    /* 确保内容区域不会阻止点击事件 */
+}
+
+.connecting-indicator i {
+    margin-right: 10px;
+    font-size: 1.2em;
+    color: #3498db;
+}
+
+.connecting-progress {
+    width: 100%;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+    pointer-events: none;
+    /* 确保进度条不会阻止点击事件 */
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #3498db;
+    border-radius: 2px;
+    width: 0%;
+    animation: progress 1.5s infinite;
+    pointer-events: none;
+    /* 确保进度条内部不会阻止点击事件 */
+
+    @keyframes progress {
+        0% {
+            width: 0%;
+        }
+
+        50% {
+            width: 70%;
+        }
+
+        100% {
+            width: 100%;
+        }
+    }
+
+    .connecting-success {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 0;
+        width: 100%;
+        color: #10b981;
+        pointer-events: none;
+        /* 确保成功状态不会阻止点击事件 */
+    }
+
+    .connecting-error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 0;
+        width: 100%;
+        color: #ef4444;
+        pointer-events: none;
+        /* 确保错误状态不会阻止点击事件 */
+    }
+
+    .connecting-success i,
+    .connecting-error i {
+        margin-right: 10px;
+        font-size: 1.2em;
+        pointer-events: none;
+        /* 确保图标不会阻止点击事件 */
+    }
+
+    /* 显示连接提示 */
+    .server-connect-toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* 暗色模式适配 */
+    .dark-mode .server-connect-toast {
+        background: rgba(30, 30, 30, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dark-mode .progress-bar {
+        background-color: #818cf8;
+    }
+
+    .dark-mode .connecting-indicator i {
+        color: #818cf8;
+    }
+
+    /* 添加点击悬停效果 */
+    .server-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    /* 添加点击指示器 */
+    .server-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(99, 102, 241, 0.1);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .server-card:active::after {
+        opacity: 1;
+    }
+
+}
