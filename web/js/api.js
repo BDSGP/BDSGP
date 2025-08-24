@@ -2,8 +2,69 @@
 // API服务 - 处理所有API请求
 // =============================================================================
 
-import { API_CONFIG, MOTD_API_CONFIG } from './config.js';
+import { API_CONFIG, MOTD_API_CONFIG, SERVER_CONFIG } from './config.js';
 import { log } from './utils.js';
+
+/**
+ * 通用API请求函数
+ * @param {string} url - 请求的URL
+ * @param {Object} options - 请求选项
+ * @param {number} timeout - 超时时间（毫秒）
+ * @returns {Promise<Object>} - API响应数据
+ */
+async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+/**
+ * 带重试机制的API请求函数
+ * @param {string} url - 请求的URL
+ * @param {Object} options - 请求选项
+ * @param {number} maxRetries - 最大重试次数
+ * @param {number} retryDelay - 重试间隔时间（毫秒）
+ * @param {number} timeout - 超时时间（毫秒）
+ * @returns {Promise<Object>} - API响应数据
+ */
+async function fetchWithRetry(url, options = {}, maxRetries = 2, retryDelay = 1000, timeout = 5000) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+        try {
+            return await fetchWithTimeout(url, options, timeout);
+        } catch (error) {
+            lastError = error;
+            
+            // 如果是最后一次尝试，直接抛出错误
+            if (attempt > maxRetries) {
+                break;
+            }
+            
+            // 等待一段时间后重试
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+    }
+    
+    throw lastError;
+}
 
 /**
  * 清理MOTD API返回的数据，去除多余的空字符
@@ -36,24 +97,15 @@ function cleanMOTDData(data) {
 export async function fetchMOTDInfo(host) {
     try {
         log('MOTD信息', `正在请求MOTD信息，主机：${host}`, 'API请求');
-
-        // 添加超时处理机制
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), MOTD_API_CONFIG.timeout);
-
-        const response = await fetch(`${MOTD_API_CONFIG.baseUrl}?host=${host}`, {
-            signal: controller.signal
-        });
-
-        // 清除超时计时器
-        clearTimeout(timeoutId);
-
-        // 检查HTTP响应状态
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
-        }
-
-        const data = await response.json();
+        
+        // 使用带重试机制的请求函数
+        const data = await fetchWithRetry(
+            `${MOTD_API_CONFIG.baseUrl}?host=${host}`,
+            {},
+            MOTD_API_CONFIG.retryCount,
+            MOTD_API_CONFIG.retryDelay,
+            MOTD_API_CONFIG.timeout
+        );
 
         // 添加API响应的调试信息
         log('MOTD信息', 'API响应数据', 'API响应');
@@ -93,24 +145,15 @@ export async function fetchMOTDInfo(host) {
 export async function fetchServersList() {
     try {
         log('服务器列表', '正在请求服务器列表', 'API请求');
-
-        // 添加超时处理机制
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
-        const response = await fetch(API_CONFIG.baseUrl, {
-            signal: controller.signal
-        });
-
-        // 清除超时计时器
-        clearTimeout(timeoutId);
-
-        // 检查HTTP响应状态
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
-        }
-
-        const data = await response.json();
+        
+        // 使用带重试机制的请求函数
+        const data = await fetchWithRetry(
+            API_CONFIG.baseUrl,
+            {},
+            API_CONFIG.retryCount,
+            API_CONFIG.retryDelay,
+            API_CONFIG.timeout
+        );
 
         // 添加API响应的调试信息
         log('服务器列表', 'API响应数据', 'API响应');
@@ -150,32 +193,22 @@ export async function fetchServersList() {
  * @param {string} uuid - 服务器UUID
  * @returns {Promise<Object>} - 包含服务器信息的Promise对象
  */
-export async function fetchServerInfo(uuid, retryCount = 0) {
-    const maxRetries = 2;
-
+export async function fetchServerInfo(uuid) {
     try {
-        log('服务器信息', `正在请求服务器信息，UUID：${uuid} (尝试 ${retryCount + 1}/${maxRetries + 1})`, 'API请求');
+        log('服务器信息', `正在请求服务器信息，UUID：${uuid}`, 'API请求');
 
         // 使用新的API，通过UUID获取服务器信息
-        log('服务器信息', `请求地址：${API_CONFIG.baseUrl}?uuid=${uuid}`, 'API请求');
+        const requestUrl = `${API_CONFIG.baseUrl}?uuid=${uuid}`;
+        log('服务器信息', `请求地址：${requestUrl}`, 'API请求');
 
-        // 添加超时处理机制
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
-        const response = await fetch(`${API_CONFIG.baseUrl}?uuid=${uuid}`, {
-            signal: controller.signal
-        });
-
-        // 清除超时计时器
-        clearTimeout(timeoutId);
-
-        // 检查HTTP响应状态
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
-        }
-
-        const data = await response.json();
+        // 使用带重试机制的请求函数
+        const data = await fetchWithRetry(
+            requestUrl,
+            {},
+            SERVER_CONFIG.maxRetryAttempts,
+            API_CONFIG.retryDelay,
+            API_CONFIG.timeout
+        );
 
         // 添加API响应的调试信息
         log('服务器信息', 'API响应数据', 'API响应');
@@ -215,7 +248,7 @@ export async function fetchServerInfo(uuid, retryCount = 0) {
                     (serverData && typeof serverData.player_count === 'number' ? serverData.player_count : 0);
                 // 获取最大人数，优先使用MOTD信息，其次使用服务器数据，如果都无效则使用默认值
                 let playersMax = motdInfo && typeof motdInfo.max === 'number' && motdInfo.max > 0 ? motdInfo.max :
-                    (serverData && typeof serverData.max_players === 'number' && serverData.max_players > 0 ? serverData.max_players : 20); // 默认值为20
+                    (serverData && typeof serverData.max_players === 'number' && serverData.max_players > 0 ? serverData.max_players : SERVER_CONFIG.defaultMaxPlayers);
 
                 return {
                     status: motdInfo ? motdInfo.status : (isOnline ? 'online' : 'offline'),
@@ -255,20 +288,12 @@ export async function fetchServerInfo(uuid, retryCount = 0) {
         console.error('[服务器信息] 获取服务器信息时出错:', error);
         console.log('[服务器信息] 请求地址：', `${API_CONFIG.baseUrl}?uuid=${uuid}`);
 
-        // 如果还有重试次数，则进行重试
-        if (retryCount < maxRetries) {
-            log('服务器信息', `准备进行第 ${retryCount + 2} 次重试`, '重试');
-            // 延迟1秒后重试
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            return fetchServerInfo(uuid, retryCount + 1);
-        }
-
         return {
             status: 'error',
             error: error.message || '未知错误',
             timestamp: new Date().toISOString(),
             uuid: uuid,
-            retryAttempts: retryCount + 1
+            retryAttempts: SERVER_CONFIG.maxRetryAttempts
         };
     }
 }

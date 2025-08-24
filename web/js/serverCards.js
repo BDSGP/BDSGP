@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { log } from './utils.js';
+import { SERVER_CONFIG } from './config.js';
 
 /**
  * 处理Minecraft颜色代码，将其转换为HTML
@@ -105,17 +106,33 @@ import { fetchServerInfo } from './api.js';
  * @returns {string} - 服务器卡片的HTML字符串
  */
 export function createServerCard(server) {
-    console.error(server);
-    log('服务器卡片', `创建服务器卡片: ${server.name}`, '卡片生成');
+    // 验证输入参数
+    if (!server || typeof server !== 'object') {
+        log('服务器卡片', '无效的服务器对象', '卡片生成-错误');
+        console.error('[服务器卡片] 无效的服务器对象:', server);
+        return '';
+    }
+    
+    // 确保必要的属性存在
+    const serverName = server.name || '未知服务器';
+    const serverHost = server.host || '未知';
+    const serverPort = server.port || '未知';
+    const serverUuid = server.uuid || '未知';
+    const serverIntroduce = server.introduce || '暂无介绍';
+    const serverMotd = server.motd || '';
+    const serverImage = server.image || './images/logo.png';
+    
+    log('服务器卡片', `创建服务器卡片: ${serverName}`, '卡片生成');
+    
     return `
-        <div class="server-card" data-uuid="${server.uuid}">
+        <div class="server-card" data-uuid="${serverUuid}">
             <div class="server-image-container">
-                <img class="server-image" src="${server.image || './images/logo.png'}" alt="${server.name}服务器介绍">
+                <img class="server-image" src="${serverImage}" alt="${serverName}服务器介绍">
             </div>
             <div class="server-content">
                 <h3>
-                    <span class="server-name">${server.name}</span>
-                    <span class="server-ip">${server.host}:${server.port}</span>
+                    <span class="server-name">${serverName}</span>
+                    <span class="server-ip">${serverHost}:${serverPort}</span>
                 </h3>
                 <div class="server-status">
                     <span class="status-dot"></span>
@@ -158,7 +175,7 @@ export function createServerCard(server) {
                     </div>
                 </div>
                 <div class="server-description">
-                    <p class="motd-text">${server.introduce || '暂无介绍'}</p>
+                    <p class="motd-text">${serverIntroduce}</p>
                 </div>
                 <div class="server-motd-container">
                     <div class="motd-header">
@@ -166,7 +183,7 @@ export function createServerCard(server) {
                         <span>服务器MOTD</span>
                     </div>
                     <div class="motd-content-box">
-                        <div class="motd-content">${processMinecraftColorCodes(server.motd) || '暂无MOTD'}</div>
+                        <div class="motd-content">${processMinecraftColorCodes(serverMotd) || '暂无MOTD'}</div>
                     </div>
                 </div>
             </div>
@@ -339,7 +356,7 @@ export async function updateServerCard(card) {
             // 尝试从服务器卡片中获取保存的最大人数信息
             const serverIdElem = card.querySelector('.server-id');
             const createdTimeElem = card.querySelector('.created-time');
-            let savedMaxPlayers = 20; // 默认值
+            let savedMaxPlayers = SERVER_CONFIG.defaultMaxPlayers; // 使用配置中的默认值
 
             // 如果有其他地方存储了最大人数信息，可以在这里获取
             countElem.textContent = `0/${savedMaxPlayers}`;
@@ -394,6 +411,12 @@ export function updateAllServers() {
  * @param {number} columns - 每行显示的服务器数量
  */
 export function updateServerLayout(columns) {
+    // 验证输入参数
+    if (typeof columns !== 'number' || columns < 1 || columns > 6) {
+        log('服务器列表', `无效的列数: ${columns}，使用默认值`, '布局-错误');
+        columns = 2; // 使用默认值
+    }
+    
     log('服务器列表', `更新布局为每行显示${columns}个服务器`, '布局');
 
     // 保存用户偏好
@@ -402,6 +425,15 @@ export function updateServerLayout(columns) {
     // 更新CSS网格列数
     const serverList = document.getElementById('serverList');
     if (serverList) {
-        serverList.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+        try {
+            serverList.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            log('服务器列表', `成功更新布局为每行${columns}列`, '布局');
+        } catch (error) {
+            log('服务器列表', `更新布局时出错: ${error.message}`, '布局-错误');
+            console.error('[服务器列表] 更新布局时出错:', error);
+        }
+    } else {
+        log('服务器列表', '未找到服务器列表元素', '布局-错误');
+        console.warn('[服务器列表] 未找到服务器列表元素');
     }
 }

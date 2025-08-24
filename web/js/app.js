@@ -8,6 +8,7 @@ import { createServerCard, updateAllServers, updateServerLayout } from './server
 import { toggleView, toggleTheme, filterServers } from './ui.js';
 import { addServerCardClickHandlers } from './serverConnect.js';
 import { initStatsAnimation, initStats } from './stats.js';
+import { UI_CONFIG, SERVER_CONFIG } from './config.js';
 
 // DOM元素
 const DOM_ELEMENTS = {
@@ -24,7 +25,7 @@ const DOM_ELEMENTS = {
 
 /**
  * 加载服务器列表
- * 根据SERVERS_CONFIG数组创建服务器卡片并添加到页面中
+ * 根据API返回的数据创建服务器卡片并添加到页面中
  */
 async function loadServers() {
     log('服务器列表', '开始加载服务器列表', '初始化');
@@ -64,63 +65,104 @@ async function loadServers() {
         }
     }, 500);
 
-    // 从API获取服务器列表
-    const servers = await fetchServersList();
+    try {
+        // 从API获取服务器列表
+        const servers = await fetchServersList();
 
-    // 创建服务器卡片
-    if (servers.length > 0) {
-        // 如果有服务器，启用搜索框
-        if (DOM_ELEMENTS.searchInput) {
-            DOM_ELEMENTS.searchInput.disabled = false;
-            // 移除禁用样式
-            DOM_ELEMENTS.searchInput.classList.remove('disabled');
-            log('搜索功能', '有服务器，启用搜索框', '搜索');
+        // 创建服务器卡片
+        if (servers.length > 0) {
+            // 如果有服务器，启用搜索框
+            if (DOM_ELEMENTS.searchInput) {
+                DOM_ELEMENTS.searchInput.disabled = false;
+                // 移除禁用样式
+                DOM_ELEMENTS.searchInput.classList.remove('disabled');
+                log('搜索功能', '有服务器，启用搜索框', '搜索');
+            }
+
+            servers.forEach(server => {
+                const cardHtml = createServerCard(server);
+                DOM_ELEMENTS.serverList.insertAdjacentHTML('beforeend', cardHtml);
+                log('服务器列表', `已添加服务器卡片: ${server.name} (${server.host}:${server.port})`, '初始化');
+            });
+        } else {
+            // 如果没有获取到服务器列表，显示空状态提示
+            const noServersState = document.createElement('div');
+            noServersState.className = 'no-servers-state';
+            noServersState.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-server" style="font-size: 48px; color: var(--gray); margin-bottom: 1rem; animation: pulse 2s infinite;"></i>
+                    <h3>暂无服务器</h3>
+                    <p>当前没有可用的服务器，请稍后再试</p>
+                    <button class="btn btn-primary retry-btn" id="retryLoadServers">
+                        <i class="fas fa-redo"></i> 重新加载
+                    </button>
+                </div>
+            `;
+            DOM_ELEMENTS.serverList.appendChild(noServersState);
+
+            // 添加重试按钮事件监听器
+            const retryBtn = noServersState.querySelector('.retry-btn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => {
+                    log('服务器列表', '用户点击了重新加载按钮', '初始化');
+                    loadServers();
+                });
+            }
+
+            // 禁用搜索框
+            if (DOM_ELEMENTS.searchInput) {
+                DOM_ELEMENTS.searchInput.disabled = true;
+                // 添加禁用样式
+                DOM_ELEMENTS.searchInput.classList.add('disabled');
+                log('搜索功能', '没有服务器，禁用搜索框', '搜索');
+            }
         }
-
-        servers.forEach(server => {
-            const cardHtml = createServerCard(server);
-            DOM_ELEMENTS.serverList.insertAdjacentHTML('beforeend', cardHtml);
-            log('服务器列表', `已添加服务器卡片: ${server.name} (${server.host}:${server.port})`, '初始化');
-        });
-    } else {
-        // 如果没有获取到服务器列表，显示空状态提示
-        const noServersState = document.createElement('div');
-        noServersState.className = 'no-servers-state';
-        noServersState.innerHTML = `
+    } catch (error) {
+        log('服务器列表', `加载服务器列表时出错: ${error.message}`, '错误处理');
+        console.error('[服务器列表] 加载服务器列表时出错:', error);
+        
+        // 显示错误状态
+        const errorState = document.createElement('div');
+        errorState.className = 'error-state';
+        errorState.innerHTML = `
             <div class="empty-state">
-                <i class="fas fa-server" style="font-size: 48px; color: var(--gray); margin-bottom: 1rem; animation: pulse 2s infinite;"></i>
-                <h3>暂无服务器</h3>
-                <p>当前没有可用的服务器，请稍后再试</p>
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--danger); margin-bottom: 1rem;"></i>
+                <h3>加载失败</h3>
+                <p>无法加载服务器列表，请检查您的网络连接</p>
+                <button class="btn btn-primary retry-btn" id="retryLoadServers">
+                    <i class="fas fa-redo"></i> 重试
+                </button>
             </div>
         `;
-        DOM_ELEMENTS.serverList.appendChild(noServersState);
-
-        // 禁用搜索框
-        if (DOM_ELEMENTS.searchInput) {
-            DOM_ELEMENTS.searchInput.disabled = true;
-            // 添加禁用样式
-            DOM_ELEMENTS.searchInput.classList.add('disabled');
-            log('搜索功能', '没有服务器，禁用搜索框', '搜索');
+        DOM_ELEMENTS.serverList.appendChild(errorState);
+        
+        // 添加重试按钮事件监听器
+        const retryBtn = errorState.querySelector('.retry-btn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', () => {
+                log('服务器列表', '用户点击了重试按钮', '错误处理');
+                loadServers();
+            });
         }
+    } finally {
+        // 移除加载占位符
+        const loadingElement = DOM_ELEMENTS.serverList.querySelector('.loading-placeholder');
+        if (loadingElement) {
+            loadingElement.remove();
+        }
+
+        // 移除所有占位符卡片
+        const placeholderCards = DOM_ELEMENTS.serverList.querySelectorAll('.placeholder-card');
+        placeholderCards.forEach(card => {
+            card.remove();
+        });
+
+        // 触发服务器列表加载完成事件
+        log('服务器列表', '服务器列表加载完成，触发事件', '初始化');
+        console.log('[服务器列表] 服务器列表加载完成，触发事件');
+        const event = new Event('serversLoaded');
+        document.dispatchEvent(event);
     }
-
-    // 移除加载占位符
-    const loadingElement = DOM_ELEMENTS.serverList.querySelector('.loading-placeholder');
-    if (loadingElement) {
-        loadingElement.remove();
-    }
-
-    // 移除所有占位符卡片
-    const placeholderCards = DOM_ELEMENTS.serverList.querySelectorAll('.placeholder-card');
-    placeholderCards.forEach(card => {
-        card.remove();
-    });
-
-    // 触发服务器列表加载完成事件
-    log('服务器列表', '服务器列表加载完成，触发事件', '初始化');
-    console.log('[服务器列表] 服务器列表加载完成，触发事件');
-    const event = new Event('serversLoaded');
-    document.dispatchEvent(event);
 }
 
 /**
@@ -130,34 +172,35 @@ async function loadServers() {
 async function initializeApp() {
     log('应用初始化', '开始初始化应用', '初始化');
 
-    // 首先加载主题配置
-    log('应用初始化', '加载主题配置', '初始化');
-    const savedTheme = localStorage.getItem('preferredTheme');
-    log('应用初始化', `检查保存的主题偏好: ${savedTheme}`, '初始化');
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        const themeIcon = DOM_ELEMENTS.themeToggle?.querySelector('i');
-        if (themeIcon) {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
+    try {
+        // 首先加载主题配置
+        log('应用初始化', '加载主题配置', '初始化');
+        const savedTheme = localStorage.getItem('preferredTheme') || UI_CONFIG.theme;
+        log('应用初始化', `检查保存的主题偏好: ${savedTheme}`, '初始化');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            const themeIcon = DOM_ELEMENTS.themeToggle?.querySelector('i');
+            if (themeIcon) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
         }
-    }
 
-    // 加载服务器列表
-    log('应用初始化', '加载服务器列表', '初始化');
-    await loadServers();
+        // 加载服务器列表
+        log('应用初始化', '加载服务器列表', '初始化');
+        await loadServers();
 
-    // 服务器状态更新将在serversLoaded事件中处理
+        // 服务器状态更新将在serversLoaded事件中处理
 
-    // 检查保存的视图偏好
-    const savedView = localStorage.getItem('view');
-    log('应用初始化', `检查保存的视图偏好: ${savedView}`, '初始化');
-    if (savedView === 'list') {
-        toggleView('list');
-    }
+        // 检查保存的视图偏好
+        const savedView = localStorage.getItem('view') || UI_CONFIG.defaultView;
+        log('应用初始化', `检查保存的视图偏好: ${savedView}`, '初始化');
+        if (savedView === 'list') {
+            toggleView('list');
+        }
 
-    // 搜索事件监听器
-    if (DOM_ELEMENTS.searchInput) {
+        // 搜索事件监听器
+        if (DOM_ELEMENTS.searchInput) {
         log('应用初始化', '添加搜索事件监听器', '初始化');
         // 移除输入时自动搜索的行为，改为点击按钮或按Enter时搜索
 
@@ -210,7 +253,7 @@ async function initializeApp() {
             log('应用初始化', '添加每行显示数量选择器事件监听器', '初始化');
 
             // 检查保存的每行显示数量偏好
-            const savedPerRow = localStorage.getItem('perRow');
+            const savedPerRow = localStorage.getItem('perRow') || UI_CONFIG.itemsPerRow;
             if (savedPerRow) {
                 DOM_ELEMENTS.perRowSelect.value = savedPerRow;
                 updateServerLayout(parseInt(savedPerRow));
@@ -288,6 +331,10 @@ async function initializeApp() {
                 console.error('[应用初始化] 未找到服务器列表元素');
             }
         });
+    }
+    } catch (error) {
+        log('应用初始化', `初始化应用时出错: ${error.message}`, '错误处理');
+        console.error('[应用初始化] 初始化应用时出错:', error);
     }
 }
 
