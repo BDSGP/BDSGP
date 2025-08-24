@@ -7,6 +7,7 @@ import { fetchServersList } from './api.js';
 import { createServerCard, updateAllServers, updateServerLayout } from './serverCards.js';
 import { toggleView, toggleTheme, filterServers } from './ui.js';
 import { addServerCardClickHandlers } from './serverConnect.js';
+import { initStatsAnimation, initStats } from './stats.js';
 
 // DOM元素
 const DOM_ELEMENTS = {
@@ -131,7 +132,7 @@ async function initializeApp() {
 
     // 首先加载主题配置
     log('应用初始化', '加载主题配置', '初始化');
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('preferredTheme');
     log('应用初始化', `检查保存的主题偏好: ${savedTheme}`, '初始化');
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
@@ -294,6 +295,10 @@ async function initializeApp() {
 document.addEventListener('serversLoaded', () => {
     log('应用启动', '服务器列表加载完成，开始更新服务器信息', '启动');
     console.log('[服务器信息] 服务器列表加载完成，开始更新服务器信息');
+    
+    // 初始化统计数据
+    log('应用启动', '初始化统计数据', '启动');
+    initStats();
 
     // 应用当前视图设置
     const savedView = localStorage.getItem('view');
@@ -331,6 +336,12 @@ document.addEventListener('DOMContentLoaded', function () {
     log('应用启动', '调用初始化函数', '启动');
     (async () => {
         await initializeApp();
+        
+        // 初始化统计数据动画
+        log('应用启动', '初始化统计数据动画', '启动');
+        initStatsAnimation();
+        
+        // 注意：统计数据将在serversLoaded事件中更新，以确保服务器列表已加载完成
 
         // 添加手机端菜单按钮功能
         const mobileMenuBtn = document.querySelector('.mobile-menu-btn');

@@ -127,7 +127,7 @@ export async function fetchServersList() {
                 introduce: server.introduce,
                 host: server.host,
                 port: server.port,
-                is_online: server.online,
+                online: server.online,
                 player_count: server.player_count,
                 motd: server.motd,
                 last_status_time: server.last_status_time,

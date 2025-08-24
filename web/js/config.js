@@ -11,7 +11,7 @@ const API_CONFIG = {
 // MOTD API配置
 const MOTD_API_CONFIG = {
     baseUrl: "https://motdbe.blackbe.work/api",
-    timeout: 5000  // 请求超时时间（毫秒）
+    timeout: 10000  // 请求超时时间（毫秒）
 }
 
 // 日志计数器
