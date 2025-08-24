@@ -7,7 +7,7 @@
  * 包含基础URL、超时设置等API请求相关配置
  */
 const API_CONFIG = {
-    baseUrl: "http://192.168.3.11:20001/get",
+    baseUrl: "https://api.bdsgp.cn/get",
     timeout: 5000,  // 请求超时时间（毫秒）
     retryCount: 2,  // 请求失败时的重试次数
     retryDelay: 1000  // 重试间隔时间（毫秒）
