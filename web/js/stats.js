@@ -139,7 +139,7 @@ export async function updateRealStats() {
             console.log(`[统计数据] 服务器 ${serverName} 在线人数: ${playerCount}`);
 
             // 检查服务器是否在线（通过检查在线人数是否大于0或者不是"加载中..."）
-            const isOnline = playerCount > 0 || !onlineCountText.includes('加载中');
+            const isOnline = playerCount > 0 && !onlineCountText.includes('加载中');
             
             if (isOnline) {
                 onlineServers++;
