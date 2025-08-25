@@ -402,6 +402,7 @@ body {
     -webkit-text-fill-color: transparent;
     padding: 4px 2px;
     border-radius: 3px;
+    font-family: 'Unifont';
 }
 
 @keyframes blink {
