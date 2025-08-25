@@ -138,12 +138,6 @@ export function createServerCard(server) {
                     <span class="status-dot"></span>
                     <span class="online-text">加载中...</span>
                 </div>
-                <div class="loading-progress-container" style="display: none;">
-                    <div class="loading-progress-text">正在获取服务器信息...</div>
-                    <div class="loading-progress-bar">
-                        <div class="loading-progress-fill"></div>
-                    </div>
-                </div>
                 <div class="server-info">
                     <div class="info-item" title="在线人数">
                         <i class="fas fa-users"></i>
@@ -215,8 +209,6 @@ export async function updateServerCard(card) {
     const pingElem = card.querySelector('.server-ping');
     const gamemodeElem = card.querySelector('.server-gamemode');
     const motdElem = card.querySelector('.motd-text');
-    const progressContainer = card.querySelector('.loading-progress-container');
-    const progressFill = card.querySelector('.loading-progress-fill');
 
     // 检查所有必要的元素是否存在
     if (!statusElem || !countElem || !versionElem || !pingElem || !gamemodeElem) {
@@ -227,38 +219,14 @@ export async function updateServerCard(card) {
             versionElem: !!versionElem,
             pingElem: !!pingElem,
             gamemodeElem: !!gamemodeElem,
-            motdElem: !!motdElem,
-            progressContainer: !!progressContainer
+            motdElem: !!motdElem
         });
         return;
     }
 
-    // 显示加载状态和进度条
-    log('服务器信息', '设置加载状态和进度条', '卡片更新');
+    // 显示加载状态
+    log('服务器信息', '设置加载状态', '卡片更新');
     statusElem.textContent = '查询中...';
-
-    // 显示进度条
-    if (progressContainer) {
-        progressContainer.style.display = 'block';
-        progressFill.style.width = '0%';
-
-        // 模拟进度条动画
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            progress += 10;
-            progressFill.style.width = `${progress}%`;
-
-            if (progress >= 100) {
-                clearInterval(progressInterval);
-                // 延迟一点时间隐藏进度条，让用户看到100%状态
-                setTimeout(() => {
-                    if (progressContainer) {
-                        progressContainer.style.display = 'none';
-                    }
-                }, 500);
-            }
-        }, 300);
-    }
 
     // 同时设置MOTD为加载状态
     if (motdElem) {
