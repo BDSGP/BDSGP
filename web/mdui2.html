@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BDSGP - 我的世界基岩版服务器大全</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary-color: #6200ee;
+            --primary-dark: #3700b3;
+            --primary-light: #bb86fc;
+            --secondary-color: #03dac6;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --error: #b00020;
+            --on-primary: #ffffff;
+            --on-secondary: #000000;
+            --on-background: #000000;
+            --on-surface: #000000;
+            --on-error: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--on-background);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--on-primary);
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        }
+
+        .table th {
+            color: rgba(0, 0, 0, 0.6);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(98, 0, 238, 0.05);
+            transform: translateX(4px);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background-color: var(--primary-light);
+            color: var(--on-primary);
+        }
+
+        .status-online {
+            background-color: #00e676;
+        }
+
+        @media (max-width: 768px) {
+            .table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .card-header,
+            .card-content {
+                padding: 1rem;
+            }
+
+            .card-title {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                BDSGP - 基岩版服务器大全
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">服务器列表</h2>
+            </div>
+            <div class="card-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>IP地址</th>
+                            <th>端口</th>
+                            <th>状态</th>
+                            <th>简介</th>
+                        </tr>
+                    </thead>
+                    <tbody id="server-list">
+                        <!-- 服务器数据将由JS填充 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 示例服务器数据
+        const servers = [
+            {
+                name: "示例服务器1",
+                ip: "play.example.com",
+                port: "19132",
+                desc: "一个有趣的基岩版服务器",
+                online: true
+            },
+            {
+                name: "示例服务器2",
+                ip: "mc.example.net",
+                port: "19132",
+                desc: "支持生存与创造模式",
+                online: false
+            },
+            {
+                name: "创意工坊",
+                ip: "creative.example.org",
+                port: "19133",
+                desc: "专注建筑创造的服务器",
+                online: true
+            }
+        ];
+
+        const tbody = document.getElementById('server-list');
+        servers.forEach(server => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${server.name}</td>
+                <td>${server.ip}</td>
+                <td>${server.port}</td>
+                <td><span class="status-badge ${server.online ? 'status-online' : ''}">${server.online ? '在线' : '离线'}</span></td>
+                <td>${server.desc}</td>
+            `;
+            tbody.appendChild(tr);
+
+            // 添加点击事件
+            tr.addEventListener('click', () => {
+                alert(`正在连接到 ${server.name}: ${server.ip}:${server.port}`);
+                // 实际应用中可以添加复制IP或启动游戏的逻辑
+            });
+        });
+
+        // 添加页面加载动画
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+    </script>
+</body>
+
+</html>
