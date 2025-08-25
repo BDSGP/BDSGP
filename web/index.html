@@ -20,10 +20,11 @@
             </div>
         </div>
         <div class="nav-links">
-            <a href="#"><i class="fas fa-home"></i> 首页</a>
-            <a href="#"><i class="fas fa-server"></i> 服务器列表</a>
-            <a href="#"><i class="fas fa-info-circle"></i> 关于我们</a>
-            <a href="#"><i class="fas fa-envelope"></i> 联系我们</a>
+            <a href="/"><i class="fas fa-home"></i> 首页</a>
+            <a href="" onclick="scrollToSection('nav-server-list'); return false;"><i class="fas fa-server"></i>
+                服务器列表</a>
+            <a href="/about"><i class="fas fa-info-circle"></i> 关于我们</a>
+            <a href="https://qm.qq.com/q/w5bb9588G6" target="_blank"><i class="fas fa-envelope"></i> 联系我们</a>
         </div>
         <div class="nav-actions">
             <button class="theme-toggle" id="themeToggle">
@@ -43,19 +44,19 @@
         <div class="hero-content">
             <div class="hero-logo">
                 <img src="images/logo.png" alt="BDSGP Logo">
-                <div class="hero-logo-slogan">HOLY SHIT!!!</div>
+                <div class="hero-logo-slogan" id="dynamicSlogan"></div>
             </div>
             <h1>探索最佳Minecraft服务器</h1>
             <p>发现并加入最适合您的Minecraft基岩版服务器，体验精彩纷呈的多人游戏世界！我们提供稳定、安全且充满创意的游戏环境，无论您是生存爱好者还是创造大师，都能在这里找到属于自己的乐趣。加入我们，与全球玩家一起探索无限可能的方块世界！
             </p>
             <div class="hero-buttons">
-                <a href="#" class="btn btn-primary">
+                <a href="https://qm.qq.com/q/w5bb9588G6" target="_blank" class="btn btn-primary">
                     <i class="fas fa-play"></i> 快速加入
                 </a>
-                <a href="#" class="btn btn-secondary">
+                <a href="" onclick="scrollToSection('nav-server-list'); return false;" class="btn btn-secondary">
                     <i class="fas fa-list"></i> 浏览服务器
                 </a>
-                <a href="#" class="btn btn-secondary">
+                <a href="https://qm.qq.com/q/w5bb9588G6" target="_blank" class="btn btn-secondary">
                     <i class="fas fa-plus"></i> 添加服务器
                 </a>
             </div>
@@ -76,10 +77,8 @@
         </div>
     </section>
 
-
-
     <!-- 主内容区域 -->
-    <main>
+    <main id="nav-server-list">
         <div class="section-title">
             <h2>热门服务器推荐</h2>
             <p>探索我们精心挑选的高质量Minecraft基岩版服务器</p>
@@ -121,12 +120,11 @@
     </main>
 
     <footer>
-        <p>&copy; 2024 BDSGP - Minecraft基岩版服务器列表</p>
+        <p>&copy; 2023-2025 BDSGP - Minecraft基岩版服务器列表</p>
         <div class="footer-links">
-            <a href="#"><i class="fas fa-info-circle"></i> 关于我们</a>
-            <a href="#"><i class="fas fa-envelope"></i> 联系我们</a>
-            <a href="#"><i class="fab fa-github"></i> GitHub</a>
-            <a href="#"><i class="fab fa-discord"></i> Discord</a>
+            <a href="/about"><i class="fas fa-info-circle"></i> 关于我们</a>
+            <a href="https://qm.qq.com/q/w5bb9588G6" target="_blank"><i class="fas fa-envelope"></i> 联系我们</a>
+            <a href="https://github.com/BDSGP"><i class="fab fa-github"></i> GitHub</a>
         </div>
     </footer>
 
@@ -145,6 +143,46 @@
 
     <!-- 模块化JS应用 -->
     <script type="module" src="./js/app.js"></script>
+
+    <!-- 平滑滚动脚本 -->
+    <script>
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                // 计算元素位置，考虑导航栏高度
+                const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = elementPosition - navbarHeight - 20; // 减去导航栏高度和额外间距
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // 页面加载时设置随机slogan
+        document.addEventListener('DOMContentLoaded', function () {
+            const slogans = [
+                "HOLY SHIT!!!",
+                "方块世界，无限可能！",
+                "创造属于你的传奇！",
+                "探索、创造、冒险！",
+                "与朋友们一起游戏！",
+                "基岩版玩家的天堂！",
+                "开启你的Minecraft之旅！",
+                "梦涵LOVE！！！",
+                "前端好难写啊啊啊QAQ..."
+            ];
+
+            const sloganElement = document.getElementById('dynamicSlogan');
+            if (sloganElement) {
+                // 随机选择一个slogan
+                const randomIndex = Math.floor(Math.random() * slogans.length);
+                sloganElement.textContent = slogans[randomIndex];
+            }
+        });
+    </script>
 </body>
 
 </html>

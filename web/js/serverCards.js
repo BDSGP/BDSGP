@@ -11,7 +11,7 @@ import { SERVER_CONFIG } from './config.js';
  * @returns {string} - 转换后的HTML
  */
 function processMinecraftColorCodes(text) {
-    if (!text) return ''; 
+    if (!text) return '';
 
     // Minecraft颜色代码映射
     const colorMap = {
@@ -112,7 +112,7 @@ export function createServerCard(server) {
         console.error('[服务器卡片] 无效的服务器对象:', server);
         return '';
     }
-    
+
     // 确保必要的属性存在
     const serverName = server.name || '未知服务器';
     const serverHost = server.host || '未知';
@@ -121,9 +121,9 @@ export function createServerCard(server) {
     const serverIntroduce = server.introduce || '暂无介绍';
     const serverMotd = server.motd || '';
     const serverImage = server.image || './images/logo.png';
-    
+
     log('服务器卡片', `创建服务器卡片: ${serverName}`, '卡片生成');
-    
+
     return `
         <div class="server-card" data-uuid="${serverUuid}">
             <div class="server-image-container">
@@ -384,7 +384,7 @@ export function updateServerLayout(columns) {
         log('服务器列表', `无效的列数: ${columns}，使用默认值`, '布局-错误');
         columns = 2; // 使用默认值
     }
-    
+
     log('服务器列表', `更新布局为每行显示${columns}个服务器`, '布局');
 
     // 保存用户偏好

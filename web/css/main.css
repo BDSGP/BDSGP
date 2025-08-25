@@ -1,4 +1,9 @@
 /* 全局样式 */
+@font-face {
+    font-family: "Unifont";
+    src: url('/fonts/unifont.ttf');
+}
+
 :root {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
@@ -402,7 +407,7 @@ body {
     -webkit-text-fill-color: transparent;
     padding: 4px 2px;
     border-radius: 3px;
-    font-family: 'Unifont';
+    font-family: 'Unifont' !important;
 }
 
 @keyframes blink {
@@ -683,11 +688,15 @@ main {
     box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
     box-sizing: border-box;
+    /* 添加滚动锚点偏移 */
+    scroll-margin-top: calc(var(--header-height) + 20px);
 }
 
 .section-title {
     text-align: center;
     margin-bottom: 3rem;
+    /* 添加滚动锚点偏移 */
+    scroll-margin-top: calc(var(--header-height) + 20px);
 }
 
 .section-title h2 {

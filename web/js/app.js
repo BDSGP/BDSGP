@@ -370,17 +370,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (mobileMenuBtn && navLinks) {
             mobileMenuBtn.addEventListener('click', () => {
-                navLinks.classList.toggle('active');
-                mobileMenuBtn.classList.toggle('active');
-                const isActive = navLinks.classList.contains('active');
-                log('导航菜单', `手机端菜单${isActive ? '打开' : '关闭'}`, '交互');
+                const isCurrentlyActive = navLinks.classList.contains('active');
 
-                // 防止菜单打开时页面滚动
-                if (isActive) {
+                // 重置状态
+                navLinks.classList.remove('active');
+                mobileMenuBtn.classList.remove('active');
+                document.body.style.overflow = '';
+
+                // 如果之前是关闭状态，则打开菜单
+                if (!isCurrentlyActive) {
+                    navLinks.classList.add('active');
+                    mobileMenuBtn.classList.add('active');
                     document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
                 }
+
+                log('导航菜单', `手机端菜单${!isCurrentlyActive ? '打开' : '关闭'}`, '交互');
             });
 
             // 点击导航链接后关闭菜单
@@ -388,6 +392,7 @@ document.addEventListener('DOMContentLoaded', function () {
             navLinksItems.forEach(link => {
                 link.addEventListener('click', () => {
                     navLinks.classList.remove('active');
+                    mobileMenuBtn.classList.remove('active');
                     document.body.style.overflow = '';
                 });
             });

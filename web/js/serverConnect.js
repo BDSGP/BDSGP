@@ -191,7 +191,7 @@ function handleServerCardClick(event) {
     const clickedStatus = event.target.closest('.server-status');
     const clickedButton = event.target.closest('button');
     const clickedLink = event.target.closest('a');
-    
+
     // 如果点击了状态、按钮或链接，不触发服务器连接
     if (clickedStatus || clickedButton || clickedLink) {
         return;
