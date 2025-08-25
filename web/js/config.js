@@ -42,7 +42,7 @@ const UI_CONFIG = {
 const SERVER_CONFIG = {
     maxRetryAttempts: 3,       // 最大重试尝试次数
     refreshInterval: 300000,   // 服务器信息刷新间隔（毫秒），默认5分钟
-    defaultMaxPlayers: 20,     // 默认最大玩家数
+    defaultMaxPlayers: 0,     // 默认最大玩家数
     offlineTimeout: 15000      // 服务器离线超时时间（毫秒）
 };
 

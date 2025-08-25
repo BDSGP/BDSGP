@@ -195,9 +195,8 @@ async function initializeApp() {
         // 检查保存的视图偏好
         const savedView = localStorage.getItem('view') || UI_CONFIG.defaultView;
         log('应用初始化', `检查保存的视图偏好: ${savedView}`, '初始化');
-        if (savedView === 'list') {
-            toggleView('list');
-        }
+        // 初始化视图模式
+        toggleView(savedView === 'list' ? 'list' : 'card');
 
         // 搜索事件监听器
         if (DOM_ELEMENTS.searchInput) {
@@ -301,35 +300,13 @@ async function initializeApp() {
         DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => {
             console.log('[应用初始化] 卡片视图按钮被点击');
             
-            // 直接实现视图切换逻辑
-            const serverList = document.getElementById('serverList');
-            if (serverList) {
-                serverList.classList.remove('list-view');
-                serverList.classList.add('grid-view');
-                DOM_ELEMENTS.gridViewBtn.classList.add('active');
-                DOM_ELEMENTS.listViewBtn.classList.remove('active');
-                localStorage.setItem('view', 'grid');
-                console.log('[应用初始化] 已切换到卡片视图');
-            } else {
-                console.error('[应用初始化] 未找到服务器列表元素');
-            }
+                toggleView('card');
         });
         
         DOM_ELEMENTS.listViewBtn.addEventListener('click', () => {
             console.log('[应用初始化] 列表视图按钮被点击');
             
-            // 直接实现视图切换逻辑
-            const serverList = document.getElementById('serverList');
-            if (serverList) {
-                serverList.classList.remove('grid-view');
-                serverList.classList.add('list-view');
-                DOM_ELEMENTS.listViewBtn.classList.add('active');
-                DOM_ELEMENTS.gridViewBtn.classList.remove('active');
-                localStorage.setItem('view', 'list');
-                console.log('[应用初始化] 已切换到列表视图');
-            } else {
-                console.error('[应用初始化] 未找到服务器列表元素');
-            }
+            toggleView('list');
         });
     }
     } catch (error) {
@@ -350,11 +327,8 @@ document.addEventListener('serversLoaded', () => {
     // 应用当前视图设置
     const savedView = localStorage.getItem('view');
     log('应用启动', `应用当前视图设置: ${savedView || 'card'}`, '启动');
-    if (savedView === 'list') {
-        toggleView('list');
-    } else {
-        toggleView('card');
-    }
+    // 应用视图模式
+    toggleView(savedView === 'list' ? 'list' : 'card');
 
     // 更新所有服务器卡片信息
     setTimeout(() => {

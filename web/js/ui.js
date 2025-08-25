@@ -36,6 +36,11 @@ export function toggleView(viewMode) {
         const actualViewMode = viewMode === 'card' ? 'grid' : viewMode;
         console.log(`[UI交互] 添加视图类: ${actualViewMode}-view`);
         serverList.classList.add(`${actualViewMode}-view`);
+        
+        // 立即更新每行显示数量
+        const perRow = actualViewMode === 'grid' ? 2 : 1;
+        serverList.style.setProperty('--per-row', perRow);
+        console.log(`[UI交互] 初始化时设置每行显示数量为: ${perRow}`);
 
         // 更新按钮状态
         console.log(`[UI交互] 更新按钮状态，当前视图模式: ${actualViewMode}`);
@@ -53,6 +58,13 @@ export function toggleView(viewMode) {
         // 保持与app.js中使用的键名一致
         localStorage.setItem('view', actualViewMode);
         console.log(`[UI交互] 已保存用户偏好: ${actualViewMode}`);
+
+        // 更新每行显示数量
+        if (serverList) {
+            const perRow = actualViewMode === 'grid' ? 2 : 1;
+            serverList.style.setProperty('--per-row', perRow);
+            console.log(`[UI交互] 每行显示数量已更新为: ${perRow}`);
+        }
 
         console.log(`[UI交互] 视图模式已切换为: ${viewMode}`);
     } catch (error) {
@@ -161,9 +173,17 @@ export function initializeUI() {
 
     // 确保DOM完全加载后再初始化
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeAllUIComponents);
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAllUIComponents();
+            // 初始化时应用视图模式
+            const savedView = localStorage.getItem('view') || 'grid';
+            toggleView(savedView === 'grid' ? 'card' : savedView);
+        });
     } else {
         initializeAllUIComponents();
+        // 初始化时应用视图模式
+        const savedView = localStorage.getItem('view') || 'grid';
+        toggleView(savedView === 'grid' ? 'card' : savedView);
     }
 }
 
@@ -197,6 +217,13 @@ function switchView(viewMode) {
     
     // 保存用户偏好
     localStorage.setItem('view', viewMode);
+    
+    // 更新每行显示数量
+    if (serverList) {
+        const perRow = viewMode === 'grid' ? 2 : 1;
+        serverList.style.setProperty('--per-row', perRow);
+        console.log(`[UI交互] 每行显示数量已更新为: ${perRow}`);
+    }
     
     console.log(`[UI交互] 已切换到${viewMode}视图`);
 }
@@ -265,28 +292,13 @@ function initializeSearchFunctionality() {
         }
     }
     
-    // 每行显示数量选择器
-    const perRowSelect = document.getElementById('perRowSelect');
-
-    if (perRowSelect) {
-        perRowSelect.addEventListener('change', (e) => {
-            const perRow = parseInt(e.target.value);
-            const serverList = document.getElementById('serverList');
-
-            if (serverList) {
-                serverList.style.setProperty('--per-row', perRow);
-                localStorage.setItem('serversPerRow', perRow);
-
-                log('UI交互', `每行显示服务器数量设置为: ${perRow}`, '设置更新');
-            }
-        });
-
-        // 恢复用户偏好的每行显示数量
-        const savedPerRow = localStorage.getItem('serversPerRow');
-        if (savedPerRow) {
-            perRowSelect.value = savedPerRow;
-            serverList.style.setProperty('--per-row', savedPerRow);
-        }
+    // 固定卡片视图一行2个，列表视图一行1个
+    const serverList = document.getElementById('serverList');
+    if (serverList) {
+        // 根据当前视图模式设置每行显示数量
+        const currentView = localStorage.getItem('view') || 'grid';
+        const perRow = currentView === 'grid' ? 2 : 1;
+        serverList.style.setProperty('--per-row', perRow);
     }
 }
 
