@@ -1,7 +1,7 @@
 /* 全局样式 */
 @font-face {
     font-family: "Unifont";
-    src: url('/fonts/unifont.ttf');
+    src: url('/fonts/unifont.woff2') format('woff2');
 }
 
 :root {
