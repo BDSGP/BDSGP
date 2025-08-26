@@ -120,7 +120,7 @@ async function loadServers() {
     } catch (error) {
         log('服务器列表', `加载服务器列表时出错: ${error.message}`, '错误处理');
         console.error('[服务器列表] 加载服务器列表时出错:', error);
-        
+
         // 显示错误状态
         const errorState = document.createElement('div');
         errorState.className = 'error-state';
@@ -135,7 +135,7 @@ async function loadServers() {
             </div>
         `;
         DOM_ELEMENTS.serverList.appendChild(errorState);
-        
+
         // 添加重试按钮事件监听器
         const retryBtn = errorState.querySelector('.retry-btn');
         if (retryBtn) {
@@ -200,115 +200,115 @@ async function initializeApp() {
 
         // 搜索事件监听器
         if (DOM_ELEMENTS.searchInput) {
-        log('应用初始化', '添加搜索事件监听器', '初始化');
-        // 移除输入时自动搜索的行为，改为点击按钮或按Enter时搜索
+            log('应用初始化', '添加搜索事件监听器', '初始化');
+            // 移除输入时自动搜索的行为，改为点击按钮或按Enter时搜索
 
-        // 清除搜索按钮
-        if (DOM_ELEMENTS.clearSearch) {
-            DOM_ELEMENTS.clearSearch.addEventListener('click', (e) => {
-                e.preventDefault(); // 阻止默认行为
-                log('搜索', '用户点击了清除搜索按钮', '搜索');
-                DOM_ELEMENTS.searchInput.value = '';
-                // 传递空字符串作为搜索词
-                filterServers('');
-                DOM_ELEMENTS.searchInput.blur(); // 取消搜索框的聚焦状态
-            });
-        }
-
-        // 执行搜索按钮
-        if (DOM_ELEMENTS.performSearch) {
-            DOM_ELEMENTS.performSearch.addEventListener('click', () => {
-                log('搜索', '用户点击了执行搜索按钮', '搜索');
-                // 传递搜索输入框的值作为搜索词
-                filterServers(DOM_ELEMENTS.searchInput.value);
-            });
-        }
-
-        // 刷新服务器列表按钮
-        const refreshBtn = document.getElementById('refreshServers');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', async () => {
-                log('服务器列表', '用户点击了刷新服务器列表按钮', '刷新');
-                console.log('[服务器列表] 用户点击了刷新服务器列表按钮');
-
-                // 添加旋转动画
-                refreshBtn.classList.add('spinning');
-
-                // 清空当前搜索
-                DOM_ELEMENTS.searchInput.value = '';
-
-                // 重新加载服务器列表
-                await loadServers();
-
-                // 移除旋转动画
-                setTimeout(() => {
-                    refreshBtn.classList.remove('spinning');
-                }, 1000);
-            });
-        }
-
-        // 每行显示数量选择器
-        if (DOM_ELEMENTS.perRowSelect) {
-            log('应用初始化', '添加每行显示数量选择器事件监听器', '初始化');
-
-            // 检查保存的每行显示数量偏好
-            const savedPerRow = localStorage.getItem('perRow') || UI_CONFIG.itemsPerRow;
-            if (savedPerRow) {
-                DOM_ELEMENTS.perRowSelect.value = savedPerRow;
-                updateServerLayout(parseInt(savedPerRow));
+            // 清除搜索按钮
+            if (DOM_ELEMENTS.clearSearch) {
+                DOM_ELEMENTS.clearSearch.addEventListener('click', (e) => {
+                    e.preventDefault(); // 阻止默认行为
+                    log('搜索', '用户点击了清除搜索按钮', '搜索');
+                    DOM_ELEMENTS.searchInput.value = '';
+                    // 传递空字符串作为搜索词
+                    filterServers('');
+                    DOM_ELEMENTS.searchInput.blur(); // 取消搜索框的聚焦状态
+                });
             }
 
-            // 添加选择变化事件监听器
-            DOM_ELEMENTS.perRowSelect.addEventListener('change', (e) => {
-                const selectedValue = parseInt(e.target.value);
-                log('服务器列表', `用户选择了每行显示${selectedValue}个服务器`, '布局');
-                updateServerLayout(selectedValue);
+            // 执行搜索按钮
+            if (DOM_ELEMENTS.performSearch) {
+                DOM_ELEMENTS.performSearch.addEventListener('click', () => {
+                    log('搜索', '用户点击了执行搜索按钮', '搜索');
+                    // 传递搜索输入框的值作为搜索词
+                    filterServers(DOM_ELEMENTS.searchInput.value);
+                });
+            }
+
+            // 刷新服务器列表按钮
+            const refreshBtn = document.getElementById('refreshServers');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', async () => {
+                    log('服务器列表', '用户点击了刷新服务器列表按钮', '刷新');
+                    console.log('[服务器列表] 用户点击了刷新服务器列表按钮');
+
+                    // 添加旋转动画
+                    refreshBtn.classList.add('spinning');
+
+                    // 清空当前搜索
+                    DOM_ELEMENTS.searchInput.value = '';
+
+                    // 重新加载服务器列表
+                    await loadServers();
+
+                    // 移除旋转动画
+                    setTimeout(() => {
+                        refreshBtn.classList.remove('spinning');
+                    }, 1000);
+                });
+            }
+
+            // 每行显示数量选择器
+            if (DOM_ELEMENTS.perRowSelect) {
+                log('应用初始化', '添加每行显示数量选择器事件监听器', '初始化');
+
+                // 检查保存的每行显示数量偏好
+                const savedPerRow = localStorage.getItem('perRow') || UI_CONFIG.itemsPerRow;
+                if (savedPerRow) {
+                    DOM_ELEMENTS.perRowSelect.value = savedPerRow;
+                    updateServerLayout(parseInt(savedPerRow));
+                }
+
+                // 添加选择变化事件监听器
+                DOM_ELEMENTS.perRowSelect.addEventListener('change', (e) => {
+                    const selectedValue = parseInt(e.target.value);
+                    log('服务器列表', `用户选择了每行显示${selectedValue}个服务器`, '布局');
+                    updateServerLayout(selectedValue);
+                });
+            }
+
+            // 按回车键搜索
+            DOM_ELEMENTS.searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    log('搜索', '用户按下了回车键执行搜索', '搜索');
+                    // 传递搜索输入框的值作为搜索词
+                    filterServers(DOM_ELEMENTS.searchInput.value);
+                }
             });
         }
 
-        // 按回车键搜索
-        DOM_ELEMENTS.searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                log('搜索', '用户按下了回车键执行搜索', '搜索');
-                // 传递搜索输入框的值作为搜索词
-                filterServers(DOM_ELEMENTS.searchInput.value);
-            }
-        });
-    }
+        // 主题切换
+        if (DOM_ELEMENTS.themeToggle) {
+            log('应用初始化', '添加主题切换事件监听器', '初始化');
+            DOM_ELEMENTS.themeToggle.addEventListener('click', toggleTheme);
+        }
 
-    // 主题切换
-    if (DOM_ELEMENTS.themeToggle) {
-        log('应用初始化', '添加主题切换事件监听器', '初始化');
-        DOM_ELEMENTS.themeToggle.addEventListener('click', toggleTheme);
-    }
-    
-    // 视图切换按钮
-    if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
-        log('应用初始化', '添加视图切换按钮事件监听器', '初始化');
-        
-        // 移除可能已存在的事件监听器
-        // 使用cloneNode方法来移除所有事件监听器
-        const gridViewBtnClone = DOM_ELEMENTS.gridViewBtn.cloneNode(true);
-        const listViewBtnClone = DOM_ELEMENTS.listViewBtn.cloneNode(true);
-        DOM_ELEMENTS.gridViewBtn.parentNode.replaceChild(gridViewBtnClone, DOM_ELEMENTS.gridViewBtn);
-        DOM_ELEMENTS.listViewBtn.parentNode.replaceChild(listViewBtnClone, DOM_ELEMENTS.listViewBtn);
-        // 更新DOM元素引用
-        DOM_ELEMENTS.gridViewBtn = gridViewBtnClone;
-        DOM_ELEMENTS.listViewBtn = listViewBtnClone;
-        
-        // 添加新的事件监听器
-        DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => {
-            console.log('[应用初始化] 卡片视图按钮被点击');
-            
+        // 视图切换按钮
+        if (DOM_ELEMENTS.gridViewBtn && DOM_ELEMENTS.listViewBtn) {
+            log('应用初始化', '添加视图切换按钮事件监听器', '初始化');
+
+            // 移除可能已存在的事件监听器
+            // 使用cloneNode方法来移除所有事件监听器
+            const gridViewBtnClone = DOM_ELEMENTS.gridViewBtn.cloneNode(true);
+            const listViewBtnClone = DOM_ELEMENTS.listViewBtn.cloneNode(true);
+            DOM_ELEMENTS.gridViewBtn.parentNode.replaceChild(gridViewBtnClone, DOM_ELEMENTS.gridViewBtn);
+            DOM_ELEMENTS.listViewBtn.parentNode.replaceChild(listViewBtnClone, DOM_ELEMENTS.listViewBtn);
+            // 更新DOM元素引用
+            DOM_ELEMENTS.gridViewBtn = gridViewBtnClone;
+            DOM_ELEMENTS.listViewBtn = listViewBtnClone;
+
+            // 添加新的事件监听器
+            DOM_ELEMENTS.gridViewBtn.addEventListener('click', () => {
+                console.log('[应用初始化] 卡片视图按钮被点击');
+
                 toggleView('card');
-        });
-        
-        DOM_ELEMENTS.listViewBtn.addEventListener('click', () => {
-            console.log('[应用初始化] 列表视图按钮被点击');
-            
-            toggleView('list');
-        });
-    }
+            });
+
+            DOM_ELEMENTS.listViewBtn.addEventListener('click', () => {
+                console.log('[应用初始化] 列表视图按钮被点击');
+
+                toggleView('list');
+            });
+        }
     } catch (error) {
         log('应用初始化', `初始化应用时出错: ${error.message}`, '错误处理');
         console.error('[应用初始化] 初始化应用时出错:', error);
@@ -319,7 +319,7 @@ async function initializeApp() {
 document.addEventListener('serversLoaded', () => {
     log('应用启动', '服务器列表加载完成，开始更新服务器信息', '启动');
     console.log('[服务器信息] 服务器列表加载完成，开始更新服务器信息');
-    
+
     // 初始化统计数据
     log('应用启动', '初始化统计数据', '启动');
     initStats();
@@ -357,11 +357,11 @@ document.addEventListener('DOMContentLoaded', function () {
     log('应用启动', '调用初始化函数', '启动');
     (async () => {
         await initializeApp();
-        
+
         // 初始化统计数据动画
         log('应用启动', '初始化统计数据动画', '启动');
         initStatsAnimation();
-        
+
         // 注意：统计数据将在serversLoaded事件中更新，以确保服务器列表已加载完成
 
         // 添加手机端菜单按钮功能
@@ -400,4 +400,12 @@ document.addEventListener('DOMContentLoaded', function () {
     })();
 });
 
+const BDSGP_VERSION = '1.9.1';
+// 启动日志
 log('应用启动', 'BDSGP 服务器列表已加载', '启动');
+log('应用启动', `${BDSGP_VERSION}`, '启动');
+console.log(`%cBDSGP 服务器列表已加载！\n版本 ${BDSGP_VERSION}`, 'color: green; font-size: 30px; font-weight: bold;');
+console.log('%c作者：梦涵LOVE\n (https://heyuhan.huohuo.ink)', 'color: teal; font-size: 20px;');
+console.log('%c感谢使用 BDSGP 服务器列表！', 'color: blue; font-size: 28px;');
+console.log('%c如果您喜欢这个项目，请考虑在 GitHub 上给我们一个⭐！', 'color: orange; font-size: 24px;');
+console.log('%c项目地址: https://github.com/BDSGP/BDSGP', 'color: purple; font-size: 24px; text-decoration: underline;');
