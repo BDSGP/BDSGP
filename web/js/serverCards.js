@@ -1,3 +1,4 @@
+
 // =============================================================================
 // 服务器卡片相关功能
 // =============================================================================
@@ -98,7 +99,7 @@ function processMinecraftColorCodes(text) {
 
     return result;
 }
-import { fetchServerInfo } from './api.js';
+import { fetchServerInfo, fetchMOTDInfo } from './api.js';
 
 /**
  * 创建服务器卡片HTML
@@ -243,33 +244,46 @@ export async function updateServerCard(card) {
         log('服务器信息', '开始获取服务器信息', 'API请求');
         const data = await fetchServerInfo(uuid);
 
+        // 获取MOTD信息，用于获取服务器人数、版本、延迟和游戏模式
+        let motdInfo = null;
+        if (data.host && data.port) {
+            log('服务器信息', `开始获取MOTD信息，主机：${data.host}:${data.port}`, 'API请求');
+            motdInfo = await fetchMOTDInfo(data.host, data.port);
+            log('服务器信息', `MOTD信息获取结果：${motdInfo ? '成功' : '失败'}`, 'API响应');
+            console.log('[服务器信息] MOTD信息：', motdInfo);
+        }
+
         // 如果服务器在线，更新服务器信息
-        if (data && (data.status === 'online' || data.online)) {
+        if (motdInfo && data && (motdInfo.status === 'online' || motdInfo.online)) {
             log('服务器信息', '服务器在线，更新卡片信息', '卡片更新');
-            console.log('[服务器信息] 开始更新服务器信息：', data);
+            console.log('[服务器信息] 开始更新服务器信息：', motdInfo);
             statusElem.textContent = '在线';
 
             // 设置在线状态图标
             if (statusDot) {
+                console.error('在线！！！！！！！！！！！！！！！')
                 statusDot.className = 'status-dot online-dot';
             }
 
-            // 确保玩家数量是数字
-            const onlinePlayers = typeof data.players?.online === 'number' ? data.players.online : 0;
-            const maxPlayers = typeof data.players?.max === 'number' ? data.players.max : (typeof data.playerCount === 'number' ? data.playerCount : 0);
+            // 使用MOTD API的数据
+            const onlinePlayers = motdInfo?.online || 0;
+            const maxPlayers = motdInfo?.max || 0;
             countElem.textContent = `${onlinePlayers}/${maxPlayers}`;
             log('服务器信息', `在线人数：${onlinePlayers}/${maxPlayers}`, '卡片更新');
-            versionElem.textContent = data.protocol || data.version || '未知';
-            log('服务器信息', `版本：${data.protocol || data.version || '未知'}`, '卡片更新');
-            pingElem.textContent = data.delay || '-';
-            log('服务器信息', `延迟：${data.delay || '--'}ms`, '卡片更新');
-            gamemodeElem.textContent = data.gamemode || '未知';
-            log('服务器信息', `游戏模式：${data.gamemode || '未知'}`, '卡片更新');
+            // 版本信息：使用MOTD API的version
+            versionElem.textContent = motdInfo?.version || motdInfo?.protocol || '未知';
+            log('服务器信息', `版本：${motdInfo?.version || motdInfo?.protocol || '未知'}`, '卡片更新');
+            // 延迟信息：使用MOTD API的delay
+            pingElem.textContent = motdInfo?.delay || '-';
+            log('服务器信息', `延迟：${motdInfo?.delay || '--'}ms`, '卡片更新');
+            // 游戏模式信息：使用MOTD API的gamemode
+            gamemodeElem.textContent = motdInfo?.gamemode || '未知';
+            log('服务器信息', `游戏模式：${motdInfo?.gamemode || '未知'}`, '卡片更新');
 
             // 更新MOTD信息
             if (motdContentElem) {
-                motdContentElem.innerHTML = processMinecraftColorCodes(data.motd) || '暂无MOTD';
-                log('服务器信息', `MOTD：${data.motd || '暂无MOTD'}`, '卡片更新');
+                motdContentElem.innerHTML = processMinecraftColorCodes(motdInfo.motd) || '暂无MOTD';
+                log('服务器信息', `MOTD：${motdInfo.motd || '暂无MOTD'}`, '卡片更新');
             }
 
             // 显示服务器唯一ID
@@ -313,11 +327,12 @@ export async function updateServerCard(card) {
             }
         } else {
             // 服务器离线或错误状态
-            log('服务器信息', `服务器离线或错误，状态：${data.status}`, '卡片更新');
-            statusElem.textContent = data.status === 'offline' ? '离线' : '查询失败';
+            log('服务器信息', `服务器离线或错误，状态：${motdInfo.status}`, '卡片更新');
+            statusElem.textContent = motdInfo.status === 'offline' ? '离线' : '查询失败';
 
             // 设置离线状态图标
             if (statusDot) {
+                console.error('离线！！！！！！！！！！！！！！！')
                 statusDot.className = 'status-dot offline-dot';
             }
 

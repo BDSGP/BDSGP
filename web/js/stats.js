@@ -82,19 +82,60 @@ function animateNumber(element, start, end, duration) {
 }
 
 /**
+ * 等待所有服务器MOTD API请求完成
+ * @returns {Promise} 当所有服务器MOTD API请求完成时解析
+ */
+function waitForAllServersMotdComplete() {
+    return new Promise((resolve) => {
+        // 检查所有服务器卡片是否已完成MOTD API请求
+        const checkAllServersComplete = () => {
+            const serverCards = document.querySelectorAll('.server-card');
+            let allComplete = true;
+
+            serverCards.forEach(card => {
+                const onlineCountElem = card.querySelector('.online-count');
+                if (onlineCountElem) {
+                    const text = onlineCountElem.textContent;
+                    // 如果显示的是"加载中..."或类似状态，则认为未完成
+                    if (text.includes('加载') || text.includes('...') || text === '-') {
+                        allComplete = false;
+                    }
+                } else {
+                    allComplete = false;
+                }
+            });
+
+            if (allComplete) {
+                console.log('[统计数据] 所有服务器MOTD API请求已完成');
+                resolve();
+            } else {
+                // 100ms后再次检查
+                setTimeout(checkAllServersComplete, 100);
+            }
+        };
+
+        // 开始检查
+        checkAllServersComplete();
+    });
+}
+
+/**
  * 更新统计数据为实际的服务器数据
+ * 该函数会获取服务器列表，统计在线服务器数量和总玩家数，
+ * 并在页面上以动画形式更新这些统计数据
  */
 export async function updateRealStats() {
+    // 记录开始更新的日志
     log('统计数据', '开始更新实际统计数据', '更新');
 
     try {
-        // 添加延迟，确保服务器卡片信息已经更新完成
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // 1. 预处理和获取数据
         // 获取服务器列表
         console.log('[统计数据] 开始获取服务器列表');
         const servers = await fetchServersList();
         console.log('[统计数据] 获取到的服务器列表：', servers);
 
+        // 验证服务器数据
         if (!servers || servers.length === 0) {
             log('统计数据', '未获取到服务器数据', '警告');
             return;
@@ -102,33 +143,32 @@ export async function updateRealStats() {
 
         console.log(`[统计数据] 成功获取到 ${servers.length} 个服务器`);
 
-        // 计算统计数据
-        const totalServers = servers.length;
+        // 等待所有服务器MOTD API请求完成
+        console.log('[统计数据] 等待所有服务器MOTD API请求完成');
+        await waitForAllServersMotdComplete();
+
+        // 2. 初始化统计变量
         let onlineServers = 0;
         let totalPlayers = 0;
 
-        // 添加调试日志
-        log('统计数据', `获取到${totalServers}个服务器`, '调试');
-        console.log('[统计数据] 服务器数据示例：', servers[0]);
-
-        // 从服务器卡片中获取玩家数量
+        // 3. 处理服务器卡片数据
         const serverCards = document.querySelectorAll('.server-card');
         console.log(`[统计数据] 找到 ${serverCards.length} 个服务器卡片`);
 
+        // 遍历所有服务器卡片进行统计
         serverCards.forEach(card => {
-            const uuid = card.getAttribute('data-uuid');
+            // 获取服务器基本信息
             const serverName = card.querySelector('.server-name')?.textContent || '未知服务器';
             const onlineCountElem = card.querySelector('.online-count');
 
+            // 验证在线人数元素
             if (!onlineCountElem) {
                 console.log(`[统计数据] 服务器 ${serverName} 没有找到在线人数元素`);
                 return;
             }
 
+            // 解析在线人数
             const onlineCountText = onlineCountElem.textContent;
-            console.log(`[统计数据] 服务器 ${serverName} 在线人数文本: ${onlineCountText}`);
-
-            // 解析在线人数，格式为 "在线人数/最大人数" 或 "在线人数"
             const match = onlineCountText.match(/^(\d+)\/?(\d*)$/);
             if (!match) {
                 console.log(`[统计数据] 服务器 ${serverName} 在线人数格式不正确: ${onlineCountText}`);
@@ -136,138 +176,96 @@ export async function updateRealStats() {
             }
 
             const playerCount = parseInt(match[1]);
-            console.log(`[统计数据] 服务器 ${serverName} 在线人数: ${playerCount}`);
-
-            // 检查服务器是否在线（通过检查status-dot是否有offline-dot类）
             const statusDot = card.querySelector('.status-dot');
             const isOnline = statusDot && !statusDot.classList.contains('offline-dot');
-            
+
+            // 更新统计
             if (isOnline) {
                 onlineServers++;
                 console.log(`[统计数据] 服务器 ${serverName} 在线`);
             } else {
                 console.log(`[统计数据] 服务器 ${serverName} 离线`);
             }
-            
-            // 统计所有服务器的玩家数量
+
             if (playerCount > 0) {
-                console.log(`[统计数据] 添加服务器 ${serverName} 的玩家数量: ${playerCount}`);
                 totalPlayers += playerCount;
+                console.log(`[统计数据] 添加服务器 ${serverName} 的玩家数量: ${playerCount}`);
             }
-        }
-        );
+        });
 
-        // 添加调试日志
-        log('统计数据', `统计结果: 在线服务器${onlineServers}个, 总玩家数${totalPlayers}人`, '调试');
-
-        // 更新页面上的统计数据
+        // 4. 更新页面显示
+        // 获取统计显示元素
         const serverCountElement = document.querySelector('.stat-item:nth-child(1) .stat-number');
         const playerCountElement = document.querySelector('.stat-item:nth-child(2) .stat-number');
 
-        // 添加调试信息
-        console.log('[统计数据] 找到的元素：', {
-            serverCountElement: !!serverCountElement,
-            playerCountElement: !!playerCountElement
-        });
-
-        // 添加更多调试信息
+        // 更新服务器数量显示
         if (serverCountElement) {
-            console.log('[统计数据] 服务器数量元素当前内容：', serverCountElement.textContent);
-            console.log('[统计数据] 服务器数量元素data-count属性：', serverCountElement.getAttribute('data-count'));
+            updateStatElement(serverCountElement, onlineServers, '服务器数量');
         }
 
+        // 更新玩家数量显示
         if (playerCountElement) {
-            console.log('[统计数据] 玩家数量元素当前内容：', playerCountElement.textContent);
-            console.log('[统计数据] 玩家数量元素data-count属性：', playerCountElement.getAttribute('data-count'));
+            updateStatElement(playerCountElement, totalPlayers, '玩家数量');
         }
 
-        if (serverCountElement) {
-            // 检查是否已经播放过初始动画
-            const hasAnimated = serverCountElement.dataset.animated === 'true';
+        // 5. 触发动画效果
+        triggerStatAnimation(serverCountElement, playerCountElement);
 
-            // 保存当前显示的值
-            const currentServerValue = parseInt(serverCountElement.textContent.replace(/,/g, '')) || 0;
-
-            // 添加调试信息
-            console.log(`[统计数据] 服务器数量: 当前值=${currentServerValue}, 新值=${onlineServers}, 已动画=${hasAnimated}`);
-
-            // 更新数据属性
-            serverCountElement.setAttribute('data-count', onlineServers);
-
-            // 添加调试信息
-            console.log(`[统计数据] 设置data-count属性后: ${serverCountElement.getAttribute('data-count')}`);
-
-            // 强制更新文本内容，无论是否已经播放过动画
-            serverCountElement.textContent = onlineServers.toLocaleString();
-            console.log(`[统计数据] 强制更新文本内容为: ${onlineServers.toLocaleString()}`);
-            console.log(`[统计数据] 更新后服务器数量元素内容：`, serverCountElement.textContent);
-        }
-
-        if (playerCountElement) {
-            // 检查是否已经播放过初始动画
-            const hasAnimated = playerCountElement.dataset.animated === 'true';
-
-            // 保存当前显示的值
-            const currentPlayerValue = parseInt(playerCountElement.textContent.replace(/,/g, '')) || 0;
-
-            // 添加调试信息
-            console.log(`[统计数据] 玩家数量: 当前值=${currentPlayerValue}, 新值=${totalPlayers}, 已动画=${hasAnimated}`);
-
-            // 更新数据属性
-            playerCountElement.setAttribute('data-count', totalPlayers);
-
-            // 添加调试信息
-            console.log(`[统计数据] 设置data-count属性后: ${playerCountElement.getAttribute('data-count')}`);
-
-            // 强制更新文本内容，无论是否已经播放过动画
-            playerCountElement.textContent = totalPlayers.toLocaleString();
-            console.log(`[统计数据] 强制更新文本内容为: ${totalPlayers.toLocaleString()}`);
-            console.log(`[统计数据] 更新后玩家数量元素内容：`, playerCountElement.textContent);
-        }
-
-        // 强制重新触发动画
-        console.log(`[统计数据] 强制重新触发动画`);
-
-        // 重置动画状态并设置初始值为0
-        if (serverCountElement) {
-            serverCountElement.dataset.animated = 'false';
-            serverCountElement.textContent = '0';
-            console.log(`[统计数据] 重置服务器数量动画状态并设置初始值为0`);
-            console.log(`[统计数据] 服务器数量元素当前data-count: ${serverCountElement.getAttribute('data-count')}`);
-        }
-        if (playerCountElement) {
-            playerCountElement.dataset.animated = 'false';
-            playerCountElement.textContent = '0';
-            console.log(`[统计数据] 重置玩家数量动画状态并设置初始值为0`);
-            console.log(`[统计数据] 玩家数量元素当前data-count: ${playerCountElement.getAttribute('data-count')}`);
-        }
-
-        // 重新触发动画
-        console.log(`[统计数据] 调用initStatsAnimation()`);
-
-        // 直接调用动画函数，而不是通过观察器
-        setTimeout(() => {
-            if (serverCountElement) {
-                const target = parseInt(serverCountElement.getAttribute('data-count'));
-                console.log(`[统计数据] 直接调用服务器数量动画: 0 -> ${target}`);
-                animateNumber(serverCountElement, 0, target, 2000);
-                serverCountElement.dataset.animated = 'true';
-            }
-
-            if (playerCountElement) {
-                const target = parseInt(playerCountElement.getAttribute('data-count'));
-                console.log(`[统计数据] 直接调用玩家数量动画: 0 -> ${target}`);
-                animateNumber(playerCountElement, 0, target, 2000);
-                playerCountElement.dataset.animated = 'true';
-            }
-        }, 100);
-
+        // 记录完成日志
         log('统计数据', `统计数据更新完成: ${onlineServers} 台服务器在线, ${totalPlayers} 名玩家在线`, '更新');
     } catch (error) {
+        // 错误处理
         log('统计数据', `更新统计数据时出错: ${error.message}`, '错误');
         console.error('[统计数据] 更新统计数据时出错:', error);
     }
 }
+
+/**
+ * 更新统计元素的内容和属性
+ * @param {HTMLElement} element - 统计显示元素
+ * @param {number} value - 新的数值
+ * @param {string} type - 统计类型（用于日志）
+ */
+function updateStatElement(element, value, type) {
+    // 记录当前状态
+    console.log(`[统计数据] ${type} - 当前值: ${element.textContent}, 新值: ${value}`);
+
+    // 更新数据属性和显示文本
+    element.setAttribute('data-count', value);
+    element.textContent = value.toLocaleString();
+
+    // 重置动画状态
+    element.dataset.animated = 'false';
+    element.textContent = '0';
+
+    console.log(`[统计数据] ${type} - 更新后data-count: ${element.getAttribute('data-count')}`);
+}
+
+/**
+ * 触发统计数字动画
+ * @param {HTMLElement} serverElement - 服务器数量元素
+ * @param {HTMLElement} playerElement - 玩家数量元素
+ */
+function triggerStatAnimation(serverElement, playerElement) {
+    console.log('[统计数据] 开始触发动画');
+
+    setTimeout(() => {
+        if (serverElement) {
+            const target = parseInt(serverElement.getAttribute('data-count'));
+            console.log(`[统计数据] 服务器数量动画: 0 -> ${target}`);
+            animateNumber(serverElement, 0, target, 2000);
+            serverElement.dataset.animated = 'true';
+        }
+
+        if (playerElement) {
+            const target = parseInt(playerElement.getAttribute('data-count'));
+            console.log(`[统计数据] 玩家数量动画: 0 -> ${target}`);
+            animateNumber(playerElement, 0, target, 2000);
+            playerElement.dataset.animated = 'true';
+        }
+    }, 100);
+}
+
 
 /**
  * 初始化统计数据

@@ -91,6 +91,25 @@ body {
     gap: 1rem;
 }
 
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition);
+}
+
+
+.logo-link:hover {
+    opacity: 0.8;
+    position: relative;
+    /* 添加相对定位，使logo-badge可以相对于它进行绝对定位 */
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+    height: 100%;
+    max-width: clamp(150px, 25vw, 200px);
+}
+
 .logo {
     display: flex;
     align-items: center;

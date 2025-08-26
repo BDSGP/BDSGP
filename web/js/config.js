@@ -18,7 +18,7 @@ const API_CONFIG = {
  * 用于获取服务器MOTD（Message Of The Day）信息的API配置
  */
 const MOTD_API_CONFIG = {
-    baseUrl: "https://motdbe.blackbe.work/api",
+    baseUrl: "https://motd.minebbs.com/api/status",
     timeout: 10000,  // 请求超时时间（毫秒）
     retryCount: 1,  // 请求失败时的重试次数
     retryDelay: 1500  // 重试间隔时间（毫秒）

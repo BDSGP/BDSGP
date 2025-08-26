@@ -15,19 +15,19 @@ import { log } from './utils.js';
 async function fetchWithTimeout(url, options = {}, timeout = 5000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
+
     try {
         const response = await fetch(url, {
             ...options,
             signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP错误! 状态: ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (error) {
         clearTimeout(timeoutId);
@@ -46,23 +46,23 @@ async function fetchWithTimeout(url, options = {}, timeout = 5000) {
  */
 async function fetchWithRetry(url, options = {}, maxRetries = 2, retryDelay = 1000, timeout = 5000) {
     let lastError;
-    
+
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
         try {
             return await fetchWithTimeout(url, options, timeout);
         } catch (error) {
             lastError = error;
-            
+
             // 如果是最后一次尝试，直接抛出错误
             if (attempt > maxRetries) {
                 break;
             }
-            
+
             // 等待一段时间后重试
             await new Promise(resolve => setTimeout(resolve, retryDelay));
         }
     }
-    
+
     throw lastError;
 }
 
@@ -94,13 +94,13 @@ function cleanMOTDData(data) {
  * @param {string} host - 服务器主机地址和端口
  * @returns {Promise<Object>} - 包含服务器MOTD信息的Promise对象
  */
-export async function fetchMOTDInfo(host) {
+export async function fetchMOTDInfo(ip, port) {
     try {
-        log('MOTD信息', `正在请求MOTD信息，主机：${host}`, 'API请求');
-        
+        log('MOTD信息', `正在请求MOTD信息，主机：${ip}:${port}`, 'API请求');
+
         // 使用带重试机制的请求函数
         const data = await fetchWithRetry(
-            `${MOTD_API_CONFIG.baseUrl}?host=${host}`,
+            `${MOTD_API_CONFIG.baseUrl}?ip=${ip}&port=${port}`,
             {},
             MOTD_API_CONFIG.retryCount,
             MOTD_API_CONFIG.retryDelay,
@@ -116,14 +116,20 @@ export async function fetchMOTDInfo(host) {
             // 清理数据中的空字符
             const cleanedData = cleanMOTDData(data);
 
+            console.error('[MOTD信息] 清理后的MOTD数据：', cleanedData);
+
+            console.warn('[MOTD信息] cleanedData.players:', cleanedData.players);
+            console.warn('[MOTD信息] cleanedData.players.online:', cleanedData.players ? cleanedData.players.online : 'N/A');
+            console.warn('[MOTD信息] cleanedData.players.max:', cleanedData.players ? cleanedData.players.max : 'N/A');
+
             // 返回处理后的MOTD信息
             return {
                 status: cleanedData.status,
                 motd: cleanedData.motd || '',
-                agreement: cleanedData.agreement || 0,
+                protocol: cleanedData.protocol || 0,
                 version: cleanedData.version || '',
-                online: cleanedData.online || 0,
-                max: cleanedData.max || 0,
+                online: cleanedData.players.online || 0,
+                max: cleanedData.players.max || 0,
                 gamemode: cleanedData.gamemode || '',
                 delay: cleanedData.delay || 0
             };
@@ -145,7 +151,7 @@ export async function fetchMOTDInfo(host) {
 export async function fetchServersList() {
     try {
         log('服务器列表', '正在请求服务器列表', 'API请求');
-        
+
         // 使用带重试机制的请求函数
         const data = await fetchWithRetry(
             API_CONFIG.baseUrl,
@@ -236,13 +242,14 @@ export async function fetchServerInfo(uuid) {
                 // 获取MOTD信息
                 let motdInfo = null;
                 if (serverData.host && serverData.port) {
-                    const hostWithPort = `${serverData.host}:${serverData.port}`;
-                    motdInfo = await fetchMOTDInfo(hostWithPort);
+                    motdInfo = await fetchMOTDInfo(serverData.host, serverData.port);
                     log('服务器信息', `获取到MOTD信息: ${motdInfo ? '成功' : '失败'}`, 'MOTD信息');
                 }
 
+                console.warn('[服务器信息] MOTD信息:', motdInfo);
+
                 // 返回处理后的服务器信息
-                const isOnline = serverData.online;
+                const isOnline = motdInfo.status;
                 // 确保玩家数量是数字而不是布尔值
                 const playersOnline = motdInfo && typeof motdInfo.online === 'number' ? motdInfo.online :
                     (serverData && typeof serverData.player_count === 'number' ? serverData.player_count : 0);
@@ -266,8 +273,8 @@ export async function fetchServerInfo(uuid) {
                     delay: motdInfo ? motdInfo.delay : null, // 使用MOTD API提供的延迟信息
                     gamemode: motdInfo ? motdInfo.gamemode : '未知',
                     map: '未知',
-                    protocol: motdInfo ? motdInfo.version : '未知',
-                    agreement: motdInfo ? motdInfo.agreement : 0,
+                    version: motdInfo ? motdInfo.version : '未知',
+                    protocol: motdInfo ? motdInfo.protocol : 0,
                     serverId: serverData.uuid || '未知',
                     lastQueryTime: serverData.last_status_time || new Date().toISOString(),
                     created_at: serverData.created_at || null
