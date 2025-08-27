@@ -5,7 +5,7 @@ let apiBaseUrl = 'https://api.bdsgp.cn'; // API基础URL，根据实际情况修
 
 // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function () {
-    const BDSGP_VERSION = '2.0.1';
+    const BDSGP_VERSION = '2.1.0';
     // 启动日志
     log('应用启动', 'BDSGP 服务器列表已加载', '启动');
     log('应用启动', `${BDSGP_VERSION}`, '启动');

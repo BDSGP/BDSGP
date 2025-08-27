@@ -8,6 +8,8 @@ import { createServerCard, updateAllServers, updateServerLayout } from './server
 import { toggleView, toggleTheme, filterServers } from './ui.js';
 import { addServerCardClickHandlers } from './serverConnect.js';
 import { initStatsAnimation, initStats } from './stats.js';
+import { initPlayerHistoryChart } from './playerHistoryChart.js';
+import { initOverallPlayerHistoryChart } from './overallPlayerHistoryChart.js';
 import { UI_CONFIG, SERVER_CONFIG } from './config.js';
 
 // DOM元素
@@ -362,6 +364,10 @@ document.addEventListener('DOMContentLoaded', function () {
         log('应用启动', '初始化统计数据动画', '启动');
         initStatsAnimation();
 
+        // 初始化主页历史人数图表功能
+        log('应用启动', '初始化主页历史人数图表功能', '启动');
+        initOverallPlayerHistoryChart();
+
         // 注意：统计数据将在serversLoaded事件中更新，以确保服务器列表已加载完成
 
         // 添加手机端菜单按钮功能
@@ -400,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })();
 });
 
-const BDSGP_VERSION = '2.0.1';
+const BDSGP_VERSION = '2.1.0';
 // 启动日志
 log('应用启动', 'BDSGP 服务器列表已加载', '启动');
 log('应用启动', `${BDSGP_VERSION}`, '启动');
