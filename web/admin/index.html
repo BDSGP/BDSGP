@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDSGP 管理后台</title>
+    <!-- Bootstrap CSS -->
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin">
+                <i class="fas fa-server me-2"></i>BDSGP 管理后台
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item" onclick="window.open('/')">
+                        <a class="nav-link active" href="/">
+                            <i class="fas fa-home"></i>返回首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="" data-page="dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>数据面板
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="" data-page="servers">
+                            <i class="fas fa-server me-1"></i>服务器管理
+                        </a>
+                    </li>
+                    <li class="nav-item admin-only" style="display: none;">
+                        <a class="nav-link" href="" data-page="users">
+                            <i class="fas fa-users me-1"></i>用户管理
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <div id="userInfo" class="text-white me-3">
+                        <span id="usernameDisplay"></span>
+                        <span id="userRole" class="badge bg-info ms-2">普通用户</span>
+                    </div>
+                    <button id="logoutBtn" class="btn btn-outline-light">
+                        <i class="fas fa-sign-out-alt"></i> 退出
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container-fluid mt-4">
+        <!-- 登录表单 -->
+        <div id="loginPage" class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">用户登录</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">用户名</label>
+                                <input type="text" class="form-control" id="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="adminKey" class="form-label">管理员密钥 (可选)</label>
+                                <input type="password" class="form-control" id="adminKey">
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">登录</button>
+                            </div>
+                        </form>
+                        <div class="mt-3 text-center">
+                            <span>没有账号？</span>
+                            <a href="#" id="showRegisterForm">立即注册</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 注册表单 -->
+        <div id="registerPage" class="row justify-content-center" style="display: none;">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">用户注册</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="regUsername" class="form-label">用户名</label>
+                                <input type="text" class="form-control" id="regUsername" required>
+                                <div class="form-text">用户名长度3-50个字符</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="regPassword" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="regPassword" required>
+                                <div class="form-text">密码至少6个字符</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">确认密码</label>
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success">注册</button>
+                            </div>
+                        </form>
+                        <div class="mt-3 text-center">
+                            <span>已有账号？</span>
+                            <a href="#" id="showLoginForm">返回登录</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据面板 -->
+        <div id="dashboardPage" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2>数据面板</h2>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">服务器总数</h5>
+                            <h2 id="totalServers">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">在线服务器</h5>
+                            <h2 id="onlineServers">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">离线服务器</h5>
+                            <h2 id="offlineServers">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">总玩家数</h5>
+                            <h2 id="totalPlayers">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">服务器列表</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>图标</th>
+                                            <th>名称</th>
+                                            <th>地址</th>
+                                            <th>端口</th>
+                                            <th>状态</th>
+                                            <th>玩家数</th>
+                                            <th>最后查询</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="serversTableBody">
+                                        <!-- 服务器数据将通过JS动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 服务器管理 -->
+        <div id="serversPage" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2>服务器管理</h2>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">我的服务器</h5>
+                            <button class="btn btn-primary" id="addServerBtn">
+                                <i class="fas fa-plus"></i> 添加服务器
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>图标</th>
+                                            <th>名称</th>
+                                            <th>地址</th>
+                                            <th>端口</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="myServersTableBody">
+                                        <!-- 我的服务器数据将通过JS动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户管理 (管理员专用) -->
+        <div id="usersPage" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2>用户管理</h2>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">用户列表</h5>
+                            <div>
+                                <button class="btn btn-success" id="addTokenBtn">
+                                    <i class="fas fa-key"></i> 添加Token
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>用户名</th>
+                                            <th>Token</th>
+                                            <th>注册时间</th>
+                                            <th>最后登录</th>
+                                            <th>服务器数量</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <!-- 用户数据将通过JS动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑服务器模态框 -->
+    <div class="modal fade" id="serverModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="serverModalTitle">添加服务器</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="serverForm">
+                        <input type="hidden" id="serverUuid">
+                        <div class="mb-3">
+                            <label for="serverName" class="form-label">服务器名称</label>
+                            <input type="text" class="form-control" id="serverName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverIntroduce" class="form-label">服务器介绍</label>
+                            <textarea class="form-control" id="serverIntroduce" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverHost" class="form-label">服务器地址</label>
+                            <input type="text" class="form-control" id="serverHost" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverPort" class="form-label">服务器端口</label>
+                            <input type="number" class="form-control" id="serverPort" value="19132" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverIconUrl" class="form-label">服务器图标URL</label>
+                            <input type="text" class="form-control" id="serverIconUrl">
+                            <div class="form-text">或者上传图标文件</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverIconFile" class="form-label">上传图标</label>
+                            <input type="file" class="form-control" id="serverIconFile" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveServerBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加Token模态框 (管理员专用) -->
+    <div class="modal fade" id="tokenModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">添加Token</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="tokenForm">
+                        <div class="mb-3">
+                            <label for="tokenValue" class="form-label">Token值</label>
+                            <input type="text" class="form-control" id="tokenValue" required>
+                            <div class="form-text">留空则自动生成</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveTokenBtn">添加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">提示</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                操作成功
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="./js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义JS -->
+    <script type="module" src="js/api.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

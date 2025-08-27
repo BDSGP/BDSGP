@@ -121,7 +121,7 @@ export function createServerCard(server) {
     const serverUuid = server.uuid || '未知';
     const serverIntroduce = server.introduce || '暂无介绍';
     const serverMotd = server.motd || '';
-    const serverImage = server.image || './images/logo.png';
+    const serverImage = server.image || './images/loading.gif'; // 默认加载图片
 
     log('服务器卡片', `创建服务器卡片: ${serverName}`, '卡片生成');
 
@@ -210,6 +210,7 @@ export async function updateServerCard(card) {
     const pingElem = card.querySelector('.server-ping');
     const gamemodeElem = card.querySelector('.server-gamemode');
     const motdElem = card.querySelector('.motd-text');
+    const serverImageElem = card.querySelector('.server-image');
 
     // 检查所有必要的元素是否存在
     if (!statusElem || !countElem || !versionElem || !pingElem || !gamemodeElem) {
@@ -253,8 +254,19 @@ export async function updateServerCard(card) {
             console.log('[服务器信息] MOTD信息：', motdInfo);
         }
 
+        // 替换服务器图标（无论服务器是否在线都执行）
+        if (serverImageElem) {
+            console.warn(data);
+            console.log('[服务器信息] 服务器图标URL：', data.icon);
+            serverImageElem.src = data.icon;
+            // 添加错误处理，如果图片加载失败则使用默认图标
+            serverImageElem.onerror = function () {
+                this.src = './images/屏幕截图 2025-08-16 220301.png';
+            };
+        }
+
         // 如果服务器在线，更新服务器信息
-        if (motdInfo && data && (motdInfo.status === 'online' || motdInfo.online)) {
+        if (motdInfo && data && ((motdInfo.status && motdInfo.status === 'online') || motdInfo.online)) {
             log('服务器信息', '服务器在线，更新卡片信息', '卡片更新');
             console.log('[服务器信息] 开始更新服务器信息：', motdInfo);
             statusElem.textContent = '在线';
@@ -321,14 +333,15 @@ export async function updateServerCard(card) {
 
             // 更新服务器介绍
             if (motdElem) {
-                const introduceText = data.name ? `${data.name} - ${data.introduce || '暂无介绍'}` : data.introduce || '暂无介绍';
+                const introduceText = data.name ? `${data.introduce || '暂无介绍'}` : data.introduce || '暂无介绍';
                 motdElem.textContent = introduceText;
                 log('服务器信息', `服务器介绍：${introduceText}`, '卡片更新');
             }
         } else {
             // 服务器离线或错误状态
-            log('服务器信息', `服务器离线或错误，状态：${motdInfo.status}`, '卡片更新');
-            statusElem.textContent = motdInfo.status === 'offline' ? '离线' : '查询失败';
+            const serverStatus = (motdInfo && motdInfo.status) ? motdInfo.status : 'unknown';
+            log('服务器信息', `服务器离线或错误，状态：${serverStatus}`, '卡片更新');
+            statusElem.textContent = serverStatus === 'offline' ? '离线' : '查询失败';
 
             // 设置离线状态图标
             if (statusDot) {

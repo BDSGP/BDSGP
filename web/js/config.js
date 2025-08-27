@@ -8,7 +8,7 @@
  */
 const API_CONFIG = {
     baseUrl: "https://api.bdsgp.cn/get",
-    timeout: 5000,  // 请求超时时间（毫秒）
+    timeout: 10000,  // 请求超时时间（毫秒）
     retryCount: 2,  // 请求失败时的重试次数
     retryDelay: 1000  // 重试间隔时间（毫秒）
 };

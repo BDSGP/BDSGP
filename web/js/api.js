@@ -12,7 +12,7 @@ import { log } from './utils.js';
  * @param {number} timeout - 超时时间（毫秒）
  * @returns {Promise<Object>} - API响应数据
  */
-async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+async function fetchWithTimeout(url, options = {}, timeout = 10000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -211,9 +211,9 @@ export async function fetchServerInfo(uuid) {
         const data = await fetchWithRetry(
             requestUrl,
             {},
-            SERVER_CONFIG.maxRetryAttempts,
-            API_CONFIG.retryDelay,
-            API_CONFIG.timeout
+            SERVER_CONFIG.maxRetryAttempts + 1, // 增加重试次数
+            API_CONFIG.retryDelay * 1.5, // 增加重试间隔
+            API_CONFIG.timeout * 1.5 // 增加超时时间
         );
 
         // 添加API响应的调试信息
@@ -229,6 +229,7 @@ export async function fetchServerInfo(uuid) {
                 const serverData = Array.isArray(data.data) ? data.data[0] : data.data;
 
                 // 添加调试信息
+                console.log('[服务器信息] 服务器IMG：', serverData.icon_url);
                 console.log('[服务器信息] serverData内容:', serverData);
                 console.log('[服务器信息] serverData.host存在:', !!serverData.host);
                 console.log('[服务器信息] serverData.port存在:', !!serverData.port);
@@ -269,6 +270,7 @@ export async function fetchServerInfo(uuid) {
                     host: serverData.host,
                     port: serverData.port,
                     introduce: introduceText,
+                    icon: serverData.icon_url,
                     motd: motdInfo ? motdInfo.motd : serverData.motd || '',
                     delay: motdInfo ? motdInfo.delay : null, // 使用MOTD API提供的延迟信息
                     gamemode: motdInfo ? motdInfo.gamemode : '未知',

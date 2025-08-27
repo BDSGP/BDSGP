@@ -1865,11 +1865,13 @@ main {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
     max-width: 100%;
     font-size: 0.9rem;
     color: var(--text-light);
     line-height: 1.4;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .server-motd {
@@ -1890,8 +1892,10 @@ main {
 .server-motd span:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
     max-width: calc(100% - 4rem);
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 /* 服务器MOTD容器样式 */

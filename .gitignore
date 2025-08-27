@@ -2,4 +2,4 @@
 LICENSE
 nginx.htaccess
 .htaccess
-admin*
+app_real.js
