@@ -128,8 +128,8 @@ export async function fetchMOTDInfo(ip, port) {
                 motd: cleanedData.motd || '',
                 protocol: cleanedData.protocol || 0,
                 version: cleanedData.version || '',
-                online: cleanedData.players.online || 0,
-                max: cleanedData.players.max || 0,
+                online: (cleanedData.players && cleanedData.players.online) || 0,
+                max: (cleanedData.players && cleanedData.players.max) || 0,
                 gamemode: cleanedData.gamemode || '',
                 delay: cleanedData.delay || 0
             };
@@ -250,15 +250,15 @@ export async function fetchServerInfo(uuid) {
                 console.warn('[服务器信息] MOTD信息:', motdInfo);
 
                 // 返回处理后的服务器信息
-                const isOnline = motdInfo.status;
+                const isOnline = motdInfo && motdInfo.status === 'online';
                 // 确保玩家数量是数字而不是布尔值
-                const playersOnline = motdInfo.online || 0;
+                const playersOnline = (motdInfo && motdInfo.online) || (serverData && serverData.player_count) || 0;
                 // 获取最大人数，优先使用MOTD信息，其次使用服务器数据，如果都无效则使用默认值
-                let playersMax = motdInfo.max || 0;
+                let playersMax = (motdInfo && motdInfo.max) || (serverData && serverData.max_players) || SERVER_CONFIG.defaultMaxPlayers;
 
                 return {
-                    status: motdInfo ? motdInfo.status : (isOnline ? 'online' : 'offline'),
-                    online: motdInfo ? motdInfo.status === 'online' : isOnline,
+                    status: isOnline ? 'online' : 'offline',
+                    online: isOnline,
                     players: {
                         online: playersOnline,
                         max: playersMax
@@ -269,12 +269,12 @@ export async function fetchServerInfo(uuid) {
                     port: serverData.port,
                     introduce: introduceText,
                     icon: serverData.icon_url,
-                    motd: motdInfo ? motdInfo.motd : serverData.motd || '',
-                    delay: motdInfo ? motdInfo.delay : null, // 使用MOTD API提供的延迟信息
-                    gamemode: motdInfo ? motdInfo.gamemode : '未知',
+                    motd: (motdInfo && motdInfo.motd) || serverData.motd || '',
+                    delay: (motdInfo && motdInfo.delay) || null, // 使用MOTD API提供的延迟信息
+                    gamemode: (motdInfo && motdInfo.gamemode) || '未知',
                     map: '未知',
-                    version: motdInfo ? motdInfo.version : '未知',
-                    protocol: motdInfo ? motdInfo.protocol : 0,
+                    version: (motdInfo && motdInfo.version) || '未知',
+                    protocol: (motdInfo && motdInfo.protocol) || 0,
                     serverId: serverData.uuid || '未知',
                     lastQueryTime: serverData.last_status_time || new Date().toISOString(),
                     created_at: serverData.created_at || null
