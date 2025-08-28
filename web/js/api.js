@@ -252,11 +252,9 @@ export async function fetchServerInfo(uuid) {
                 // 返回处理后的服务器信息
                 const isOnline = motdInfo.status;
                 // 确保玩家数量是数字而不是布尔值
-                const playersOnline = motdInfo && typeof motdInfo.online === 'number' ? motdInfo.online :
-                    (serverData && typeof serverData.player_count === 'number' ? serverData.player_count : 0);
+                const playersOnline = motdInfo.online || 0;
                 // 获取最大人数，优先使用MOTD信息，其次使用服务器数据，如果都无效则使用默认值
-                let playersMax = motdInfo && typeof motdInfo.max === 'number' && motdInfo.max > 0 ? motdInfo.max :
-                    (serverData && typeof serverData.max_players === 'number' && serverData.max_players > 0 ? serverData.max_players : SERVER_CONFIG.defaultMaxPlayers);
+                let playersMax = motdInfo.max || 0;
 
                 return {
                     status: motdInfo ? motdInfo.status : (isOnline ? 'online' : 'offline'),

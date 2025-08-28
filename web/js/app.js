@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })();
 });
 
-const BDSGP_VERSION = '2.2.8';
+const BDSGP_VERSION = '2.2.9';
 // 启动日志
 log('应用启动', 'BDSGP 服务器列表已加载', '启动');
 log('应用启动', `${BDSGP_VERSION}`, '启动');

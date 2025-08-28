@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务器详情 - BDSGP</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="icon" href="./favicon.png" type="image/x-icon">
+    <style>
+        @font-face {
+            font-family: "Unifont";
+            src: url('/fonts/unifont.woff2') format('woff2');
+        }
+
+        /* 服务器详情页特定样式 */
+        .server-detail-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .server-detail-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .server-image-large {
+            flex: 0 0 300px;
+            height: auto;
+            border-radius: 14px;
+            overflow: hidden;
+            background-color: var(--secondary-bg);
+        }
+
+        .server-image-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .server-info-large {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .server-info-large h1 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .server-info-large .server-ip {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .server-status-large {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .online-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            animation: statusDotAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards, pulse-dot 2s 0.6s infinite;
+            opacity: 0;
+            transform: scale(0);
+            z-index: 2;
+        }
+
+        @keyframes pulse-dot {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            70% {
+                box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse-dot-offline {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            70% {
+                box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+                transform: scale(1);
+            }
+        }
+
+        .offline-dot {
+            width: 12px;
+            height: 12px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+            animation: statusDotAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards, pulse-dot-offline 2s 0.6s infinite;
+            opacity: 0;
+            transform: scale(0);
+            z-index: 2;
+        }
+
+        .offline-dot::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 2px;
+            background: white;
+            border-radius: 1px;
+            box-shadow: 0 0 0 1px white;
+        }
+
+        .server-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .server-detail-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .server-description-content {
+            line-height: 1.6;
+        }
+
+        .server-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .player-history-chart-container {
+            height: 400px;
+            position: relative;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .back-button:hover {
+            color: var(--primary-color);
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: var(--danger-color);
+        }
+
+        .server-motd-content {
+            background: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Unifont';
+        }
+
+        .markdown-container {
+            background: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-top: 1rem;
+            line-height: 1.6;
+        }
+
+        .markdown-container h1,
+        .markdown-container h2,
+        .markdown-container h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .markdown-container p {
+            margin-bottom: 1rem;
+        }
+
+        .markdown-container ul,
+        .markdown-container ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .markdown-container li {
+            margin-bottom: 0.5rem;
+        }
+
+        .markdown-container code {
+            background: var(--card-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .markdown-container pre {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        .markdown-container blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+
+        .markdown-container img {
+            max-width: 100%;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+        }
+
+        .markdown-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .markdown-container th,
+        .markdown-container td {
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            text-align: left;
+        }
+
+        .markdown-container th {
+            background: var(--card-bg);
+            font-weight: bold;
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes statusPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        @keyframes statusOfflinePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+            }
+        }
+
+        /* 应用动画 */
+        .server-detail-container {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .server-detail-header {
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .server-image-large {
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .server-image-large:hover {
+            transform: scale(1.03);
+        }
+
+        .server-image-large img {
+            transition: transform 0.5s ease;
+        }
+
+        .server-image-large:hover img {
+            transform: scale(1.1);
+        }
+
+        .stat-card {
+            transition: all 0.3s ease;
+            animation: fadeIn 0.8s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .stat-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .stat-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .stat-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .stat-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .tab-button:hover::after {
+            width: 100%;
+        }
+
+        .tab-button.active {
+            animation: pulse 0.5s ease;
+        }
+
+        .tab-content {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        .markdown-container {
+            animation: fadeIn 0.7s ease;
+        }
+
+        .markdown-container h1,
+        .markdown-container h2,
+        .markdown-container h3 {
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .markdown-container h1::before,
+        .markdown-container h2::before,
+        .markdown-container h3::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--primary-color);
+            border-radius: 2px;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .markdown-container h1:hover::before,
+        .markdown-container h2:hover::before,
+        .markdown-container h3:hover::before {
+            transform: scaleY(1);
+        }
+
+        .player-history-chart-container {
+            animation: fadeIn 0.7s ease;
+        }
+
+        .error-message {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* 悬浮提示动画 */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-5px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 100000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(5px);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="logo-container">
+            <a href="/" class="logo-link">
+                <div class="logo">
+                    <img src="images/logo.png" alt="BDSGP Logo">
+                    <span>BDSGP</span>
+                </div>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/"><i class="fas fa-home"></i> 首页</a>
+            <a href="/"><i class="fas fa-server"></i> 服务器列表</a>
+            <a href="/about"><i class="fas fa-info-circle"></i> 关于我们</a>
+            <a href="https://qm.qq.com/q/w5bb9588G6" target="_blank"><i class="fas fa-envelope"></i> 联系我们</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main>
+        <div class="server-detail-container">
+            <!-- 返回按钮 -->
+            <a href="/" class="back-button tooltip" data-tooltip="返回服务器列表">
+                <i class="fas fa-arrow-left"></i> 返回服务器列表
+            </a>
+
+            <!-- 加载状态 -->
+            <div id="loadingState" class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+
+            <!-- 错误状态 -->
+            <div id="errorState" class="error-message" style="display: none;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 1rem;"></i>
+                <h3>加载失败</h3>
+                <p>无法加载服务器信息，请稍后再试</p>
+                <button class="btn btn-primary" id="retryButton">
+                    <i class="fas fa-redo"></i> 重试
+                </button>
+            </div>
+
+            <!-- 服务器详情内容 -->
+            <div id="serverDetailContent" style="display: none;">
+                <!-- 服务器头部信息 -->
+                <div class="server-detail-header">
+                    <div class="server-image-large">
+                        <img id="serverImage" src="" alt="服务器图片">
+                    </div>
+                    <div class="server-info-large">
+                        <h1 id="serverName">服务器名称</h1>
+                        <div class="server-ip" style="cursor: pointer;">
+                            <div><i class="fas fa-copy"></i> <span id="serverIp" onclick="copyIP()">服务器IP</span></div>
+                        </div>
+                        <div class="server-status-large">
+                            <span class="status-dot" id="statusDot"></span>
+                            <span id="serverStatus">加载中...</span>
+                        </div>
+                        <div id="serverDescription" class="server-description-content">
+                            服务器描述加载中...
+                        </div>
+                        <div class="server-actions">
+                            <button class="btn btn-primary tooltip" id="connectButton" data-tooltip="点击添加服务器到Minecraft">
+                                <i class="fas fa-gamepad"></i> 加入服务器
+                            </button>
+                            <button class="btn btn-secondary-1 tooltip" id="refreshButton" data-tooltip="刷新服务器信息">
+                                <i class="fas fa-sync-alt"></i> 刷新信息
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 选项卡 -->
+                <div class="server-detail-tabs">
+                    <button class="tab-button active tooltip" data-tab="overview" data-tooltip="查看服务器基本信息">
+                        <i class="fas fa-info-circle"></i> 概览
+                    </button>
+                    <button class="tab-button tooltip" data-tab="stats" data-tooltip="查看服务器介绍">
+                        <i class="fas fa-info-circle"></i> 概览
+                    </button>
+                    <button class="tab-button tooltip" data-tab="history" data-tooltip="查看历史在线人数">
+                        <i class="fas fa-history"></i> 历史在线人数
+                    </button>
+                </div>
+
+                <!-- 选项卡内容 -->
+                <div class="tab-content active" id="overview-tab">
+                    <h2>服务器信息</h2>
+                    <div class="server-stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-value" id="playerCount">-</div>
+                            <div class="stat-label">在线玩家</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-plug"></i>
+                            <div class="stat-value" id="serverVersion">-</div>
+                            <div class="stat-label">服务器版本</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-signal"></i>
+                            <div class="stat-value" id="serverPing">-</div>
+                            <div class="stat-label">延迟 (ms)</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-gamepad"></i>
+                            <div class="stat-value" id="serverGamemode">-</div>
+                            <div class="stat-label">游戏模式</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-fingerprint"></i>
+                            <div class="stat-value" id="serverId">-</div>
+                            <div class="stat-label">服务器ID</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-clock"></i>
+                            <div class="stat-value" id="lastUpdateTime">-</div>
+                            <div class="stat-label">最后更新</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 2rem;">服务器MOTD</h3>
+                    <div class="server-motd-content" id="serverMotd">
+                        加载中...
+                    </div>
+                </div>
+
+                <div class="tab-content" id="stats-tab">
+                    <h2>服务器介绍</h2>
+                    <div id="server-intro-container" class="markdown-container">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="history-tab">
+                    <h2>历史在线人数</h2>
+                    <div class="player-history-chart-container">
+                        <canvas id="playerHistoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2023-2025 BDSGP - Minecraft基岩版服务器列表</p>
+        <div class="footer-links">
+            <a href="/about"><i class="fas fa-info-circle"></i> 关于我们</a>
+            <a href="https://qm.qq.com/q/w5bb9588G6" target="_blank"><i class="fas fa-envelope"></i> 联系我们</a>
+            <a href="https://github.com/BDSGP"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+    </footer>
+
+    <!-- Chart.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 确保Chart.js在模块化JS之前加载 -->
+    <script>
+        // 确保Chart.js全局可用
+        window.addEventListener('DOMContentLoaded', function () {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js未能正确加载');
+            }
+        });
+    </script>
+
+    <!-- 复制文本 -->
+    <script>
+        // 复制文本功能
+        function copyIP() {
+            // 创建一个临时的textarea元素
+            const textarea = document.createElement('textarea');
+            // 设置要复制的文本内容
+            textarea.value = document.getElementById("serverIp").textContent; // 文本
+            // 使元素不可见
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            // 添加到页面
+            document.body.appendChild(textarea);
+            // 选中并复制文本
+            textarea.select();
+            document.execCommand('copy');
+
+            // 显示复制成功提示
+            showNotification(`已复制到剪贴板: ${textarea.value}`);
+
+            // 移除临时元素
+            document.body.removeChild(textarea);
+        }
+
+        // 显示通知提示
+        function showNotification(message) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = 'copy-notification';
+            notification.textContent = message;
+
+            // 添加样式
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 4px;
+                z-index: 1000;
+                animation: fadeInOut 2s ease forwards;
+            `;
+
+            // 添加动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translate(-50%, 10px); }
+                    10% { opacity: 1; transform: translate(-50%, 0); }
+                    90% { opacity: 1; transform: translate(-50%, 0); }
+                    100% { opacity: 0; transform: translate(-50%, 10px); }
+                }
+            `;
+
+            // 添加到页面
+            document.head.appendChild(style);
+            document.body.appendChild(notification);
+
+            // 2秒后移除通知
+            setTimeout(() => {
+                document.body.removeChild(notification);
+                document.head.removeChild(style);
+            }, 2000);
+        }
+    </script>
+
+    <!-- 模块化JS应用 -->
+    <script type="module" src="./js/server-detail.js"></script>
+</body>
+
+</html>
