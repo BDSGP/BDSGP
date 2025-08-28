@@ -7,7 +7,7 @@ let apiBaseUrl = 'https://api.bdsgp.cn'; // API基础URL，根据实际情况修
 
 // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function () {
-    const BDSGP_VERSION = '2.1.1';
+    const BDSGP_VERSION = '2.2.1';
     // 启动日志
     log('应用启动', 'BDSGP 服务器列表已加载', '启动');
     log('应用启动', `${BDSGP_VERSION}`, '启动');
@@ -733,13 +733,10 @@ async function handleAddServer() {
 
     try {
         // 首先添加服务器
-        const formData = new URLSearchParams();
-        formData.append('name', name);
-        formData.append('introduce', introduce);
-        formData.append('host', host);
-        formData.append('port', port);
+        // 手动构建表单数据字符串，确保空格不被转换为+号
+        let formData = `name=${encodeURIComponent(name)}&introduce=${encodeURIComponent(introduce).replace(/\+/g, '%20')}&host=${encodeURIComponent(host)}&port=${encodeURIComponent(port)}`;
         if (iconUrl) {
-            formData.append('icon_url', iconUrl);
+            formData += `&icon_url=${encodeURIComponent(iconUrl)}`;
         }
 
         const response = await fetch(`${apiBaseUrl}/post`, {
@@ -748,7 +745,7 @@ async function handleAddServer() {
                 'token': currentUser.token,
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: formData.toString()
+            body: formData
         });
 
         const data = await response.json();
@@ -956,14 +953,10 @@ async function handleUpdateServer() {
 
     try {
         // 首先更新服务器信息
-        const formData = new URLSearchParams();
-        formData.append('uuid', uuid);
-        formData.append('name', name);
-        formData.append('introduce', introduce);
-        formData.append('host', host);
-        formData.append('port', port);
+        // 手动构建表单数据字符串，确保空格不被转换为+号
+        let formData = `uuid=${encodeURIComponent(uuid)}&name=${encodeURIComponent(name)}&introduce=${encodeURIComponent(introduce).replace(/\+/g, '%20')}&host=${encodeURIComponent(host)}&port=${encodeURIComponent(port)}`;
         if (iconUrl) {
-            formData.append('icon_url', iconUrl);
+            formData += `&icon_url=${encodeURIComponent(iconUrl)}`;
         }
 
         const response = await fetch(`${apiBaseUrl}/update`, {
@@ -972,7 +965,7 @@ async function handleUpdateServer() {
                 'token': currentUser.token,
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: formData.toString()
+            body: formData
         });
 
         const data = await response.json();

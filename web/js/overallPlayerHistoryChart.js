@@ -6,6 +6,67 @@
 import { log } from './utils.js';
 import { fetchServersList } from './api.js';
 
+/**
+ * 带重试机制的API请求函数
+ * @param {string} url - 请求的URL
+ * @param {Object} options - 请求选项
+ * @param {number} maxRetries - 最大重试次数
+ * @param {number} retryDelay - 重试间隔时间（毫秒）
+ * @param {number} timeout - 超时时间（毫秒）
+ * @returns {Promise<Object>} - API响应数据
+ */
+async function fetchWithRetry(url, options = {}, maxRetries = 2, retryDelay = 1000, timeout = 5000) {
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+        try {
+            return await fetchWithTimeout(url, options, timeout);
+        } catch (error) {
+            lastError = error;
+
+            // 如果是最后一次尝试，直接抛出错误
+            if (attempt > maxRetries) {
+                break;
+            }
+
+            // 等待一段时间后重试
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+    }
+
+    throw lastError;
+}
+
+/**
+ * 通用API请求函数
+ * @param {string} url - 请求的URL
+ * @param {Object} options - 请求选项
+ * @param {number} timeout - 超时时间（毫秒）
+ * @returns {Promise<Object>} - API响应数据
+ */
+async function fetchWithTimeout(url, options = {}, timeout = 10000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
 // 全局变量，用于存储图表实例
 let overallPlayerHistoryChart = null;
 let serversData = [];
@@ -28,23 +89,33 @@ export async function fetchPlayerHistory(uuid) {
     try {
         log('历史人数', `正在获取服务器历史人数数据，UUID：${uuid}`, 'API请求');
 
-        const response = await fetch(`https://api.bdsgp.cn/get?uuid=${uuid}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
-        }
-
-        const data = await response.json();
+        // 使用带重试机制的请求函数
+        const response = await fetchWithRetry(
+            `https://api.bdsgp.cn/get?uuid=${uuid}`,
+            {},
+            2, // 重试次数
+            1000, // 重试间隔
+            10000 // 超时时间
+        );
 
         log('历史人数', '获取到历史人数数据', 'API响应');
-        console.log('[历史人数] API响应数据：', data);
+        console.log('[历史人数] API响应数据：', response);
 
-        if (data.status === 'success') {
+        if (response.status === 'success') {
             // 检查数据结构，处理不同的API响应格式
-            if (data.data && data.data.status_history) {
-                return data.data.status_history;
-            } else if (data.status_history) {
-                return data.status_history;
+            // 根据API返回的数据结构，status_history应该在data数组中的第一个元素内
+            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                const serverData = response.data[0];
+                if (serverData.status_history) {
+                    return serverData.status_history;
+                }
+            }
+
+            // 尝试其他可能的数据结构
+            if (response.data && response.data.status_history) {
+                return response.data.status_history;
+            } else if (response.status_history) {
+                return response.status_history;
             } else {
                 log('历史人数', 'API响应中未找到历史人数数据', 'API响应');
                 return [];
@@ -332,7 +403,7 @@ export function updateMultiServerChart() {
                         cornerRadius: 6,
                         displayColors: true,
                         callbacks: {
-                            title: function(tooltipItems) {
+                            title: function (tooltipItems) {
                                 // 获取原始数据中的完整时间
                                 const index = tooltipItems[0].dataIndex;
                                 // 使用第一个数据集的时间作为标题
@@ -341,7 +412,7 @@ export function updateMultiServerChart() {
                                 }
                                 return '';
                             },
-                            label: function(context) {
+                            label: function (context) {
                                 return `${context.dataset.label}: ${context.parsed.y} 人`;
                             }
                         }
@@ -500,7 +571,7 @@ async function createOrUpdateOverallPlayerHistoryChartOriginal(uuid, serverName)
                         cornerRadius: 6,
                         displayColors: true,
                         callbacks: {
-                            title: function(tooltipItems) {
+                            title: function (tooltipItems) {
                                 // 获取原始数据中的完整时间
                                 const index = tooltipItems[0].dataIndex;
                                 // 使用第一个数据集的时间作为标题
@@ -509,7 +580,7 @@ async function createOrUpdateOverallPlayerHistoryChartOriginal(uuid, serverName)
                                 }
                                 return '';
                             },
-                            label: function(context) {
+                            label: function (context) {
                                 return `${context.dataset.label}: ${context.parsed.y} 人`;
                             }
                         }
@@ -725,7 +796,7 @@ export async function initServerSelect() {
         });
 
         // 添加选择变化事件监听器
-        serverSelect.addEventListener('change', function() {
+        serverSelect.addEventListener('change', function () {
             const selectedUuid = this.value;
             if (selectedUuid) {
                 const selectedServer = serversData.find(server => server.uuid === selectedUuid);
@@ -819,14 +890,51 @@ export async function addAllServersToChart() {
         // 清空已选择的服务器
         selectedServers = [];
 
-        // 检查是否有服务器数据
-        if (!serversData || serversData.length === 0) {
-            log('历史人数图表', '没有可用的服务器数据', '图表更新-错误');
-            return;
+        // 自行请求API获取所有服务器数据
+        let allServersData = [];
+        try {
+            log('历史人数图表', '正在获取所有服务器列表', 'API请求');
+            const response = await fetchWithRetry(
+                'https://api.bdsgp.cn/get',
+                {},
+                2, // 重试次数
+                1000, // 重试间隔
+                10000 // 超时时间
+            );
+
+            if (response.status === 'success' && response.data) {
+                // 确保response.data是数组
+                if (Array.isArray(response.data)) {
+                    allServersData = response.data;
+                    log('历史人数图表', `成功获取 ${allServersData.length} 个服务器数据`, 'API响应');
+                } else {
+                    log('历史人数图表', 'API响应数据格式不正确，期望数组格式', 'API响应-错误');
+                    throw new Error('API响应数据格式不正确');
+                }
+            } else {
+                log('历史人数图表', 'API响应中未找到服务器数据', 'API响应');
+                // 如果API请求失败，尝试使用本地缓存的数据
+                if (serversData && serversData.length > 0) {
+                    allServersData = serversData;
+                    log('历史人数图表', '使用本地缓存的服务器数据', '备用方案');
+                } else {
+                    throw new Error('无法获取服务器数据');
+                }
+            }
+        } catch (error) {
+            log('历史人数图表', `获取服务器列表时出错: ${error.message}`, '错误处理');
+            console.error('[历史人数图表] 获取服务器列表时出错:', error);
+            // 如果API请求失败，尝试使用本地缓存的数据
+            if (serversData && serversData.length > 0) {
+                allServersData = serversData;
+                log('历史人数图表', '使用本地缓存的服务器数据', '备用方案');
+            } else {
+                throw new Error('无法获取服务器数据');
+            }
         }
 
         // 限制最多添加的服务器数量
-        const serversToAdd = serversData.slice(0, MAX_SERVERS_IN_CHART);
+        const serversToAdd = allServersData.slice(0, MAX_SERVERS_IN_CHART);
 
         // 为每个服务器获取历史数据并添加到图表
         for (const server of serversToAdd) {
@@ -857,7 +965,7 @@ export async function addAllServersToChart() {
         createServerSelectionTags();
 
         // 如果服务器数量超过限制，显示通知
-        if (serversData.length > MAX_SERVERS_IN_CHART) {
+        if (allServersData.length > MAX_SERVERS_IN_CHART) {
             const chartContainer = document.querySelector('.chart-section');
             if (chartContainer) {
                 let notification = chartContainer.querySelector('.chart-notification');
@@ -866,7 +974,7 @@ export async function addAllServersToChart() {
                     notification.className = 'chart-notification';
                     chartContainer.appendChild(notification);
                 }
-                notification.textContent = `由于数量限制，仅显示了前 ${MAX_SERVERS_IN_CHART} 个服务器（共 ${serversData.length} 个）`;
+                notification.textContent = `由于数量限制，仅显示了前 ${MAX_SERVERS_IN_CHART} 个服务器（共 ${allServersData.length} 个）`;
                 notification.style.display = 'block';
 
                 // 5秒后隐藏通知
@@ -895,7 +1003,7 @@ export function initOverallPlayerHistoryChart() {
     // 添加显示全部服务器按钮事件监听器
     const showAllBtn = document.getElementById('showAllServersBtn');
     if (showAllBtn) {
-        showAllBtn.addEventListener('click', function() {
+        showAllBtn.addEventListener('click', function () {
             // 添加旋转动画
             this.classList.add('spinning');
 
@@ -909,32 +1017,27 @@ export function initOverallPlayerHistoryChart() {
         });
     }
 
+    addAllServersToChart(); // 页面加载时默认显示所有服务器
+
     // 添加刷新按钮事件监听器
     const refreshBtn = document.getElementById('refreshChartBtn');
     if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            const serverSelect = document.getElementById('serverSelectForChart');
-            if (serverSelect && serverSelect.value) {
-                const selectedUuid = serverSelect.value;
-                const selectedServer = serversData.find(server => server.uuid === selectedUuid);
-                if (selectedServer) {
-                    // 添加旋转动画
-                    this.classList.add('spinning');
+        refreshBtn.addEventListener('click', function () {
+            // 添加旋转动画
+            this.classList.add('spinning');
 
-                    // 刷新图表
-                    createOrUpdateOverallPlayerHistoryChart(selectedUuid, selectedServer.name);
-
-                    // 移除旋转动画
-                    setTimeout(() => {
-                        this.classList.remove('spinning');
-                    }, 1000);
-                }
-            }
+            // 刷新图表，获取所有服务器数据
+            addAllServersToChart().finally(() => {
+                // 移除旋转动画
+                setTimeout(() => {
+                    this.classList.remove('spinning');
+                }, 1000);
+            });
         });
     }
 
     // 默认选择第一个服务器
-    document.addEventListener('serversLoaded', function() {
+    document.addEventListener('serversLoaded', function () {
         setTimeout(() => {
             const serverSelect = document.getElementById('serverSelectForChart');
             if (serverSelect && serverSelect.options.length > 1) {
