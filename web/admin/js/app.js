@@ -7,7 +7,7 @@ let apiBaseUrl = 'https://api.bdsgp.cn'; // API基础URL，根据实际情况修
 
 // DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function () {
-    const BDSGP_VERSION = '2.2.1';
+    const BDSGP_VERSION = '2.2.5';
     // 启动日志
     log('应用启动', 'BDSGP 服务器列表已加载', '启动');
     log('应用启动', `${BDSGP_VERSION}`, '启动');
@@ -393,11 +393,54 @@ async function loadMyServers() {
         return;
     }
 
+    // 显示加载提示
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'position-fixed top-0 start-50 translate-middle-x p-3';
+    loadingIndicator.style.zIndex = '9999';
+    loadingIndicator.innerHTML = `
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <div>
+                <strong>加载中</strong><br>
+                <small>正在加载服务器数据，请稍候...</small>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(loadingIndicator);
+
+    // 在表格区域也添加一个加载覆盖层
+    let tableOverlay = null;
+    const serversTable = document.querySelector('#myServersTable');
+    if (serversTable) {
+        const tableContainer = serversTable.parentElement;
+        tableOverlay = document.createElement('div');
+        tableOverlay.className = 'position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75';
+        tableOverlay.style.zIndex = '10';
+        tableOverlay.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mb-0">正在加载服务器列表...</p>
+            </div>
+        `;
+        tableContainer.style.position = 'relative';
+        tableContainer.appendChild(tableOverlay);
+    }
+
     try {
         // 使用管理员密钥获取用户信息
         const _0x304fe3 = _0x33cd; (function (_0x478919, _0x43fc11) { const _0x5fd0d7 = _0x33cd, _0x34304f = _0x478919(); while (!![]) { try { const _0x4c6ff9 = parseInt(_0x5fd0d7(0xf9)) / 0x1 + parseInt(_0x5fd0d7(0xfd)) / 0x2 + -parseInt(_0x5fd0d7(0xfa)) / 0x3 + parseInt(_0x5fd0d7(0xfe)) / 0x4 + parseInt(_0x5fd0d7(0xff)) / 0x5 + parseInt(_0x5fd0d7(0xfb)) / 0x6 + -parseInt(_0x5fd0d7(0x100)) / 0x7; if (_0x4c6ff9 === _0x43fc11) break; else _0x34304f['push'](_0x34304f['shift']()); } catch (_0x19fc9e) { _0x34304f['push'](_0x34304f['shift']()); } } }(_0x6f27, 0xd4080)); function _0x33cd(_0x61c6d0, _0x53b157) { const _0x6f273 = _0x6f27(); return _0x33cd = function (_0x33cd4f, _0x7e48b3) { _0x33cd4f = _0x33cd4f - 0xf9; let _0x5b357e = _0x6f273[_0x33cd4f]; return _0x5b357e; }, _0x33cd(_0x61c6d0, _0x53b157); } function _0x6f27() { const _0x1ec4fc = ['HhhdGhjHfGhHbgGzdhgGgUhfghjygcj', '175230vZhhbE', '3581292unxLhh', '7905025HbhXbx', '18758572NYndKD', '1521051rpLnRo', '2648595vIgduL', '2076882itjJvA']; _0x6f27 = function () { return _0x1ec4fc; }; return _0x6f27(); } const adminKey = _0x304fe3(0xfc);
 
         try {
+            // 更新加载提示
+            loadingIndicator.querySelector('small').textContent = '正在获取用户信息...';
+            if (tableOverlay) {
+                tableOverlay.querySelector('p').textContent = '正在验证用户身份...';
+            }
+
             // 1. 先获取所有用户，找到当前用户的信息
             const usersResponse = await fetch(`${apiBaseUrl}/admin/list_users`, {
                 method: 'GET',
@@ -415,6 +458,12 @@ async function loadMyServers() {
                 if (currentUserInfo) {
                     console.log("当前用户信息:", currentUserInfo);
 
+                    // 更新加载提示
+                    loadingIndicator.querySelector('small').textContent = '正在获取服务器列表...';
+                    if (tableOverlay) {
+                        tableOverlay.querySelector('p').textContent = '正在获取服务器数据...';
+                    }
+
                     // 2. 获取该用户的所有服务器
                     const serversResponse = await fetch(`${apiBaseUrl}/admin/get_user_servers?token=${currentUser.token}`, {
                         method: 'GET',
@@ -424,6 +473,12 @@ async function loadMyServers() {
                     });
 
                     const serversData = await serversResponse.json();
+
+                    // 移除加载提示
+                    loadingIndicator.remove();
+                    if (tableOverlay) {
+                        tableOverlay.remove();
+                    }
 
                     if (serversData.status === 'success') {
                         // API返回的是servers字段而不是data字段
@@ -520,10 +575,22 @@ async function loadMyServers() {
                 showAlert(usersData.message || '获取用户列表失败', 'danger');
             }
         } catch (error) {
+            // 移除加载提示
+            loadingIndicator.remove();
+            if (tableOverlay) {
+                tableOverlay.remove();
+            }
+
             console.error('加载我的服务器失败:', error);
             showAlert('加载服务器数据失败，请检查网络连接', 'danger');
         }
     } catch (error) {
+        // 移除加载提示
+        loadingIndicator.remove();
+        if (tableOverlay) {
+            tableOverlay.remove();
+        }
+
         console.error('加载用户数据失败:', error);
         showAlert('加载用户数据失败，请检查网络连接', 'danger');
     }
@@ -731,6 +798,15 @@ async function handleAddServer() {
         return;
     }
 
+    // 禁用保存按钮并添加加载动画
+    const saveBtn = document.getElementById('saveServerBtn');
+    const originalBtnContent = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        保存中...
+    `;
+
     try {
         // 首先添加服务器
         // 手动构建表单数据字符串，确保空格不被转换为+号
@@ -762,6 +838,12 @@ async function handleAddServer() {
                 for (let pair of iconFormData.entries()) {
                     console.log(pair[0] + ': ', pair[1]);
                 }
+
+                // 更新按钮状态显示上传进度
+                saveBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    上传图标中...
+                `;
 
                 try {
                     // 使用XMLHttpRequest代替fetch，因为fetch在处理文件上传时可能有问题
@@ -816,117 +898,164 @@ async function handleAddServer() {
     } catch (error) {
         console.error('添加服务器失败:', error);
         showAlert('添加服务器失败，请检查网络连接', 'danger');
+    } finally {
+        // 恢复按钮状态
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalBtnContent;
     }
 }
 
 // 显示编辑服务器模态框
-function showEditServerModal(server) {
-    // 创建模态框HTML
-    const modalHtml = `
-        <div class="modal fade" id="editServerModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">编辑服务器</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="editServerForm">
-                            <input type="hidden" id="editServerUuid" value="${server.uuid}">
-                            <div class="mb-3">
-                                <label for="editServerName" class="form-label">服务器名称</label>
-                                <input type="text" class="form-control" id="editServerName" value="${server.name}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editServerIntroduce" class="form-label">服务器介绍</label>
-                                <textarea class="form-control" id="editServerIntroduce" rows="3" required>${server.introduce || ''}</textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editServerHost" class="form-label">服务器地址</label>
-                                <input type="text" class="form-control" id="editServerHost" value="${server.host}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editServerPort" class="form-label">服务器端口</label>
-                                <input type="number" class="form-control" id="editServerPort" value="${server.port}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editServerIconUrl" class="form-label">服务器图标URL</label>
-                                <input type="text" class="form-control" id="editServerIconUrl" value="${server.icon_url || ''}">
-                                <div class="form-text">或者上传新图片作为图标</div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">当前图标</label>
-                                <div class="d-flex align-items-center">
-                                    ${server.icon_url ? `<img src="${server.icon_url}" class="server-icon me-3" alt="当前图标">` : '<span class="me-3">无图标</span>'}
-                                    <button type="button" class="btn btn-sm btn-outline-danger" id="deleteIconBtn">删除图标</button>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">上传新图标</label>
-                                <div class="image-preview" id="editIconPreview">
-                                    <span>点击或拖拽图片到此处上传</span>
-                                </div>
-                                <input type="file" class="form-control d-none" id="editIconFile" accept="image/*">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="editSelectIconBtn">选择图片</button>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-primary" id="updateServerBtn">更新</button>
-                    </div>
-                </div>
+async function showEditServerModal(server) {
+    // 显示加载提示
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'position-fixed top-0 start-50 translate-middle-x p-3';
+    loadingIndicator.style.zIndex = '9999';
+    loadingIndicator.innerHTML = `
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <div>
+                <strong>加载中</strong><br>
+                <small>正在获取服务器详细信息，请稍候...</small>
             </div>
         </div>
     `;
+    document.body.appendChild(loadingIndicator);
 
-    // 添加模态框到页面
-    const modalContainer = document.createElement('div');
-    modalContainer.innerHTML = modalHtml;
-    document.body.appendChild(modalContainer);
+    try {
+        // 先获取完整的服务器信息
+        const response = await fetch(`${apiBaseUrl}/get?uuid=${server.uuid}`, {
+            method: 'GET',
+            headers: {
+                'token': currentUser.token
+            }
+        });
 
-    // 初始化模态框
-    const modal = new bootstrap.Modal(document.getElementById('editServerModal'));
-    modal.show();
+        const data = await response.json();
 
-    // 设置事件监听
-    document.getElementById('editSelectIconBtn').addEventListener('click', function () {
-        document.getElementById('editIconFile').click();
-    });
+        // 移除加载提示
+        loadingIndicator.remove();
 
-    document.getElementById('editIconFile').addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const preview = document.getElementById('editIconPreview');
-                preview.innerHTML = `<img src="${e.target.result}" alt="图标预览">`;
-            };
-            reader.readAsDataURL(file);
+        if (data.status === 'success' && data.data) {
+            // 获取完整的服务器数据
+            const fullServerData = Array.isArray(data.data) ? data.data[0] : data.data;
+
+            // 使用完整的服务器数据创建模态框
+            const modalHtml = `
+                <div class="modal fade" id="editServerModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">编辑服务器</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editServerForm">
+                                    <input type="hidden" id="editServerUuid" value="${fullServerData.uuid}">
+                                    <div class="mb-3">
+                                        <label for="editServerName" class="form-label">服务器名称</label>
+                                        <input type="text" class="form-control" id="editServerName" value="${fullServerData.name}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="editServerIntroduce" class="form-label">服务器介绍</label>
+                                        <textarea class="form-control" id="editServerIntroduce" rows="3" required>${fullServerData.introduce || ''}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="editServerHost" class="form-label">服务器地址</label>
+                                        <input type="text" class="form-control" id="editServerHost" value="${fullServerData.host}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="editServerPort" class="form-label">服务器端口</label>
+                                        <input type="number" class="form-control" id="editServerPort" value="${fullServerData.port}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="editServerIconUrl" class="form-label">服务器图标URL</label>
+                                        <input type="text" class="form-control" id="editServerIconUrl" value="${fullServerData.icon_url || ''}">
+                                        <div class="form-text">或者上传新图片作为图标</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">当前图标</label>
+                                        <div class="d-flex align-items-center">
+                                            ${fullServerData.icon_url ? `<img src="${fullServerData.icon_url}" class="server-icon me-3" alt="当前图标">` : '<span class="me-3">无图标</span>'}
+                                            <button type="button" class="btn btn-sm btn-outline-danger" id="deleteIconBtn">删除图标</button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">上传新图标</label>
+                                        <div class="image-preview" id="editIconPreview">
+                                            <span>点击或拖拽图片到此处上传</span>
+                                        </div>
+                                        <input type="file" class="form-control d-none" id="editIconFile" accept="image/*">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="editSelectIconBtn">选择图片</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" id="updateServerBtn">更新</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 添加模态框到页面
+            const modalContainer = document.createElement('div');
+            modalContainer.innerHTML = modalHtml;
+            document.body.appendChild(modalContainer);
+
+            // 初始化模态框
+            const modal = new bootstrap.Modal(document.getElementById('editServerModal'));
+            modal.show();
+
+            // 设置事件监听
+            document.getElementById('editSelectIconBtn').addEventListener('click', function () {
+                document.getElementById('editIconFile').click();
+            });
+
+            document.getElementById('editIconFile').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = document.getElementById('editIconPreview');
+                        preview.innerHTML = `<img src="${e.target.result}" alt="图标预览">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('editIconPreview').addEventListener('click', function () {
+                document.getElementById('editIconFile').click();
+            });
+
+            document.getElementById('deleteIconBtn').addEventListener('click', function () {
+                if (confirm('确定要删除服务器图标吗？')) {
+                    document.getElementById('editServerIconUrl').value = '';
+                    document.querySelector('#editServerModal .server-icon')?.remove();
+                    document.querySelector('#editServerModal span.me-3')?.remove();
+                    document.querySelector('#editServerModal .d-flex').prepend(document.createElement('span'));
+                    document.querySelector('#editServerModal .d-flex span').className = 'me-3';
+                    document.querySelector('#editServerModal .d-flex span').textContent = '无图标';
+                }
+            });
+
+            document.getElementById('updateServerBtn').addEventListener('click', handleUpdateServer);
+
+            // 模态框关闭时移除DOM元素
+            document.getElementById('editServerModal').addEventListener('hidden.bs.modal', function () {
+                modalContainer.remove();
+            });
+        } else {
+            showAlert('获取服务器详细信息失败', 'danger');
+            console.error('获取服务器详细信息失败:', data);
         }
-    });
-
-    document.getElementById('editIconPreview').addEventListener('click', function () {
-        document.getElementById('editIconFile').click();
-    });
-
-    document.getElementById('deleteIconBtn').addEventListener('click', function () {
-        if (confirm('确定要删除服务器图标吗？')) {
-            document.getElementById('editServerIconUrl').value = '';
-            document.querySelector('#serverModal .server-icon')?.remove();
-            document.querySelector('#serverModal span.me-3')?.remove();
-            document.querySelector('#serverModal .d-flex').prepend(document.createElement('span'));
-            document.querySelector('#serverModal .d-flex span').className = 'me-3';
-            document.querySelector('#serverModal .d-flex span').textContent = '无图标';
-        }
-    });
-
-    document.getElementById('updateServerBtn').addEventListener('click', handleUpdateServer);
-
-    // 模态框关闭时移除DOM元素
-    document.getElementById('editServerModal').addEventListener('hidden.bs.modal', function () {
-        modalContainer.remove();
-    });
+    } catch (error) {
+        showAlert('获取服务器详细信息时出错', 'danger');
+        console.error('获取服务器详细信息时出错:', error);
+    }
 }
 
 // 处理更新服务器
@@ -950,6 +1079,15 @@ async function handleUpdateServer() {
         showAlert('请填写所有必填字段', 'warning');
         return;
     }
+
+    // 禁用更新按钮并添加加载动画
+    const updateBtn = document.getElementById('updateServerBtn');
+    const originalBtnContent = updateBtn.innerHTML;
+    updateBtn.disabled = true;
+    updateBtn.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        更新中...
+    `;
 
     try {
         // 首先更新服务器信息
@@ -982,6 +1120,12 @@ async function handleUpdateServer() {
                 for (let pair of iconFormData.entries()) {
                     console.log(pair[0] + ': ', pair[1]);
                 }
+
+                // 更新按钮状态显示上传进度
+                updateBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    上传图标中...
+                `;
 
                 try {
                     // 使用XMLHttpRequest代替fetch，因为fetch在处理文件上传时可能有问题
@@ -1039,6 +1183,10 @@ async function handleUpdateServer() {
     } catch (error) {
         console.error('更新服务器失败:', error);
         showAlert('更新服务器失败，请检查网络连接', 'danger');
+    } finally {
+        // 恢复按钮状态
+        updateBtn.disabled = false;
+        updateBtn.innerHTML = originalBtnContent;
     }
 }
 
@@ -1056,6 +1204,23 @@ async function deleteServer(uuid) {
         return;
     }
 
+    // 显示加载提示
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'position-fixed top-0 start-50 translate-middle-x p-3';
+    loadingIndicator.style.zIndex = '9999';
+    loadingIndicator.innerHTML = `
+        <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <div class="spinner-border spinner-border-sm text-danger me-2" role="status">
+                <span class="visually-hidden">删除中...</span>
+            </div>
+            <div>
+                <strong>删除中</strong><br>
+                <small>正在删除服务器，请稍候...</small>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(loadingIndicator);
+
     try {
         const response = await fetch(`${apiBaseUrl}/delete`, {
             method: 'POST',
@@ -1068,6 +1233,9 @@ async function deleteServer(uuid) {
 
         const data = await response.json();
 
+        // 移除加载提示
+        loadingIndicator.remove();
+
         if (data.status === 'success') {
             showAlert('服务器已删除', 'success');
 
@@ -1077,6 +1245,9 @@ async function deleteServer(uuid) {
             showAlert(data.message || '删除服务器失败', 'danger');
         }
     } catch (error) {
+        // 移除加载提示
+        loadingIndicator.remove();
+
         console.error('删除服务器失败:', error);
         showAlert('删除服务器失败，请检查网络连接', 'danger');
     }
