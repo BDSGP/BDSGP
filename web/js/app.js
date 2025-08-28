@@ -8,7 +8,6 @@ import { createServerCard, updateAllServers, updateServerLayout } from './server
 import { toggleView, toggleTheme, filterServers } from './ui.js';
 import { addServerCardClickHandlers } from './serverConnect.js';
 import { initStatsAnimation, initStats } from './stats.js';
-import { initPlayerHistoryChart } from './playerHistoryChart.js';
 import { initOverallPlayerHistoryChart } from './overallPlayerHistoryChart.js';
 import { UI_CONFIG, SERVER_CONFIG } from './config.js';
 
@@ -406,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })();
 });
 
-const BDSGP_VERSION = '2.2.5';
+const BDSGP_VERSION = '2.2.8';
 // 启动日志
 log('应用启动', 'BDSGP 服务器列表已加载', '启动');
 log('应用启动', `${BDSGP_VERSION}`, '启动');

@@ -71,14 +71,67 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000) {
 let overallPlayerHistoryChart = null;
 let serversData = [];
 let selectedServers = []; // 存储选中的服务器数据
-const MAX_SERVERS_IN_CHART = 5; // 图表中最多显示的服务器数量
+const MAX_SERVERS_IN_CHART = 114514; // 图表中最多显示的服务器数量
 const SERVER_COLORS = [
     '#6366f1', // 靛蓝色
     '#10b981', // 绿色
     '#f59e0b', // 琥珀色
     '#ef4444', // 红色
-    '#8b5cf6'  // 紫色
+    '#8b5cf6', // 紫色
+    '#ec4899', // 粉色
+    '#06b6d4', // 青色
+    '#84cc16', // 青绿色
+    '#f97316', // 橙色
+    '#0ea5e9',  // 天蓝色
+    '#0000CD',  // 中蓝色
+    '#008000',  // 绿色
+    '#FF0000',  // 红色
+    '#0000FF',  // 蓝色
+    '#FFA500',  // 橙色
+    '#FF00FF',  // 紫色
+    '#00FFFF',  // 青色
+    '#008080',  // 深青色
+    '#800080',  // 紫色
+    '#FFD700',  // 金色
+    '#808080',  // 灰色
+    '#FFC0CB',  // 粉色
+    '#800000',  // 棕色
+    '#00FF00',  // 春绿色
+    '#FFFF00',  // 黄色
+    '#8B0000',  // 深红色
+    '#FF4500',  // 橙红色
+    '#008080',  // 深青色
+    '#FF00FF',  // 紫红色
+    '#008080',  // 深青色
 ]; // 为不同服务器分配的颜色
+
+/**
+ * 调整颜色亮度
+ * @param {string} hexColor - 十六进制颜色值
+ * @param {number} percent - 调整百分比，正数为变亮，负数为变暗
+ * @returns {string} - 调整后的十六进制颜色值
+ */
+function getAdjustedColor(hexColor, percent) {
+    // 移除 # 符号
+    let hex = hexColor.replace('#', '');
+
+    // 转换为 RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // 调整亮度
+    const adjust = (color) => {
+        const newColor = color + (color * percent / 100);
+        return Math.max(0, Math.min(255, newColor));
+    };
+
+    const newR = Math.round(adjust(r)).toString(16).padStart(2, '0');
+    const newG = Math.round(adjust(g)).toString(16).padStart(2, '0');
+    const newB = Math.round(adjust(b)).toString(16).padStart(2, '0');
+
+    return `#${newR}${newG}${newB}`;
+}
 
 /**
  * 获取服务器历史人数数据
@@ -184,7 +237,15 @@ export function processHistoryData(historyData, serverName, serverIndex) {
             pointBorderColor: color,
             pointBorderWidth: 2,
             pointRadius: 4,
-            pointHoverRadius: 6
+            pointHoverRadius: 6,
+            borderWidth: 3, // 增加线条宽度
+            // 添加渐变填充效果
+            segment: {
+                borderColor: ctx => ctx.p0.parsed.y > ctx.p1.parsed.y ?
+                    getAdjustedColor(color, -20) : // 下降时颜色变暗
+                    getAdjustedColor(color, 20),   // 上升时颜色变亮
+                borderDash: ctx => ctx.p0.parsed.y > ctx.p1.parsed.y ? [6, 4] : undefined, // 下降时添加虚线
+            }
         }
     };
 }

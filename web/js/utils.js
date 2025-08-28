@@ -9,6 +9,7 @@
  * @param {string} type - 日志类型
  */
 export function log(module, message, type = 'info') {
+    // 获取当前时间戳
     const timestamp = new Date().toLocaleTimeString();
     const logMessage = `[${timestamp}] [${module}] ${type.toUpperCase()}: ${message}`;
 

@@ -274,19 +274,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (mobileMenuBtn && navLinks) {
             mobileMenuBtn.addEventListener('click', () => {
                 const isCurrentlyActive = navLinks.classList.contains('active');
-                
+
                 // 重置状态
                 navLinks.classList.remove('active');
                 mobileMenuBtn.classList.remove('active');
                 document.body.style.overflow = '';
-                
+
                 // 如果之前是关闭状态，则打开菜单
                 if (!isCurrentlyActive) {
                     navLinks.classList.add('active');
                     mobileMenuBtn.classList.add('active');
                     document.body.style.overflow = 'hidden';
                 }
-                
+
                 log('导航菜单', `手机端菜单${!isCurrentlyActive ? '打开' : '关闭'}`, '交互');
             });
 

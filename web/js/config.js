@@ -46,16 +46,6 @@ const SERVER_CONFIG = {
     offlineTimeout: 15000      // 服务器离线超时时间（毫秒）
 };
 
-/**
- * 日志配置
- * 包含日志相关的配置选项
- */
-const LOG_CONFIG = {
-    enabled: true,      // 是否启用日志
-    level: "debug",     // 日志级别：debug, info, warn, error
-    maxCount: 1000      // 最大日志条数
-};
-
 // 日志计数器
 let logCounter = 0;
 
@@ -65,6 +55,5 @@ export {
     MOTD_API_CONFIG,
     UI_CONFIG,
     SERVER_CONFIG,
-    LOG_CONFIG,
     logCounter
 };
