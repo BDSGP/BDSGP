@@ -6,6 +6,22 @@ import { log } from './utils.js';
 import { fetchServerInfo, fetchMOTDInfo } from './api.js';
 import { API_CONFIG } from './config.js';
 
+// 引入marked库用于解析markdown
+// 注意：需要在HTML中添加marked库的CDN链接
+let marked;
+if (typeof window !== 'undefined' && window.marked) {
+    marked = window.marked;
+} else {
+    // 如果marked未加载，尝试动态加载
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+    script.onload = function () {
+        marked = window.marked;
+        console.log('服务器详情页 - marked库加载完成');
+    };
+    document.head.appendChild(script);
+}
+
 /**
  * 处理Minecraft颜色代码，将其转换为HTML
  * @param {string} text - 包含Minecraft颜色代码的文本
@@ -122,6 +138,7 @@ const DOM_ELEMENTS = {
     lastUpdateTime: document.getElementById('lastUpdateTime'),
     serverMotd: document.getElementById('serverMotd'),
     playerHistoryChart: document.getElementById('playerHistoryChart'),
+    serverArticleContainer: document.getElementById('server-article-container'),
     tabButtons: document.querySelectorAll('.tab-button'),
     tabContents: document.querySelectorAll('.tab-content')
 };
@@ -199,6 +216,20 @@ async function initializeServerDetail() {
 
     // 加载服务器详情
     await loadServerDetail();
+
+    // 自动加载服务器文章
+    console.log('服务器详情页 - 自动加载服务器文章');
+    if (serverUuid) {
+        console.log('服务器详情页 - 使用服务器UUID:', serverUuid);
+        try {
+            await displayServerArticle(serverUuid);
+            console.log('服务器详情页 - 服务器文章加载完成');
+        } catch (error) {
+            console.error('服务器详情页 - 自动加载服务器文章失败:', error);
+        }
+    } else {
+        console.log('服务器详情页 - 服务器UUID为空，无法加载文章');
+    }
 }
 
 /**
@@ -255,12 +286,23 @@ function bindEventListeners() {
     }
 
     // 选项卡按钮
-    DOM_ELEMENTS.tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
+    console.log('服务器详情页 - 绑定选项卡按钮事件，按钮数量:', DOM_ELEMENTS.tabButtons ? DOM_ELEMENTS.tabButtons.length : 0);
+    if (DOM_ELEMENTS.tabButtons) {
+        DOM_ELEMENTS.tabButtons.forEach((button, index) => {
+            console.log('服务器详情页 - 绑定按钮事件，索引:', index, '按钮:', button);
             const tabId = button.getAttribute('data-tab');
-            switchTab(tabId);
+            console.log('服务器详情页 - 按钮data-tab:', tabId);
+
+            button.addEventListener('click', () => {
+                console.log('服务器详情页 - 按钮被点击，data-tab:', tabId);
+                const clickedTabId = button.getAttribute('data-tab');
+                console.log('服务器详情页 - 点击的选项卡ID:', clickedTabId);
+                switchTab(clickedTabId);
+            });
         });
-    });
+    } else {
+        console.log('服务器详情页 - DOM_ELEMENTS.tabButtons为空');
+    }
 
     // 主题切换
     const themeToggle = document.getElementById('themeToggle');
@@ -323,29 +365,57 @@ function bindEventListeners() {
  * @param {string} tabId - 选项卡ID
  */
 function switchTab(tabId) {
+    console.log('服务器详情页 - 切换到选项卡:', tabId);
     log('服务器详情页', `切换到选项卡: ${tabId}`, '交互');
+
+    console.log('服务器详情页 - 选项卡按钮数量:', DOM_ELEMENTS.tabButtons ? DOM_ELEMENTS.tabButtons.length : 0);
+    console.log('服务器详情页 - 选项卡内容数量:', DOM_ELEMENTS.tabContents ? DOM_ELEMENTS.tabContents.length : 0);
 
     // 更新选项卡按钮状态
     DOM_ELEMENTS.tabButtons.forEach(button => {
-        if (button.getAttribute('data-tab') === tabId) {
+        const buttonTabId = button.getAttribute('data-tab');
+        console.log('服务器详情页 - 处理按钮，data-tab:', buttonTabId);
+        if (buttonTabId === tabId) {
+            console.log('服务器详情页 - 激活按钮:', buttonTabId);
             button.classList.add('active');
         } else {
+            console.log('服务器详情页 - 取消激活按钮:', buttonTabId);
             button.classList.remove('active');
         }
     });
 
     // 更新选项卡内容显示
     DOM_ELEMENTS.tabContents.forEach(content => {
+        console.log('服务器详情页 - 处理内容，ID:', content.id);
         if (content.id === `${tabId}-tab`) {
+            console.log('服务器详情页 - 显示内容:', content.id);
             content.classList.add('active');
 
             // 根据不同的选项卡加载相应的数据
             if (tabId === 'history') {
+                console.log('服务器详情页 - 切换到历史选项卡，加载玩家历史数据');
+                log('服务器详情页', '切换到历史选项卡，加载玩家历史数据', '交互');
                 loadPlayerHistory();
-            } else if (tabId === 'stats') {
-                loadServerIntroduction();
+            } else if (tabId === 'article') {
+                console.log('服务器详情页 - 切换到文章选项卡，加载服务器文章');
+                console.log('服务器详情页 - 使用服务器UUID:', serverUuid);
+                log('服务器详情页', '切换到文章选项卡，加载服务器文章', '交互');
+                // 使用全局变量serverUuid，它在页面初始化时已经设置
+                log('服务器详情页', `使用服务器UUID: ${serverUuid}`, '交互');
+                if (serverUuid) {
+                    console.log('服务器详情页 - 调用displayServerArticle');
+                    displayServerArticle(serverUuid);
+                } else {
+                    console.log('服务器详情页 - 服务器UUID为空');
+                    log('服务器详情页', '服务器UUID为空', '错误');
+                }
+            } else if (tabId === 'overview') {
+                console.log('服务器详情页 - 切换到概览选项卡，刷新服务器详情');
+                log('服务器详情页', '切换到概览选项卡，刷新服务器详情', '交互');
+                loadServerDetail();
             }
         } else {
+            console.log('服务器详情页 - 隐藏内容:', content.id);
             content.classList.remove('active');
         }
     });
@@ -462,64 +532,6 @@ function updateServerDetail(serverInfo) {
     // 更新服务器MOTD
     if (DOM_ELEMENTS.serverMotd && serverInfo.motd) {
         DOM_ELEMENTS.serverMotd.innerHTML = processMinecraftColorCodes(serverInfo.motd) || '暂无MOTD';
-    }
-}
-
-/**
- * 加载服务器介绍
- */
-async function loadServerIntroduction() {
-    log('服务器详情页', '加载服务器介绍', '数据加载');
-
-    const introContainer = document.getElementById('server-intro-container');
-    if (!introContainer) return;
-
-    // 显示加载中
-    introContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
-
-    try {
-        // 从API获取服务器信息
-        const response = await fetch(`${API_CONFIG.baseUrl}?uuid=${serverUuid}`);
-        const data = await response.json();
-
-        if (data.status === 'success' && data.data) {
-            // 获取服务器介绍
-            const introduceText = data.data.introduce || '暂无介绍';
-
-            // 简单的markdown解析（这里使用简单的正则表达式替换，实际项目中可以使用更完整的markdown解析库）
-            let htmlContent = introduceText
-                // 标题
-                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                // 粗体和斜体
-                .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-                .replace(/\*(.*)\*/gim, '<em>$1</em>')
-                // 链接
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
-                // 代码
-                .replace(/`([^`]+)`/gim, '<code>$1</code>')
-            // // 换行
-            // .replace(// gim, '<br>');
-
-            // 显示服务器介绍
-            introContainer.innerHTML = htmlContent;
-
-            log('服务器详情页', '服务器介绍加载完成', '数据加载');
-        } else {
-            throw new Error('无法获取服务器信息');
-        }
-    } catch (error) {
-        log('服务器详情页', `加载服务器介绍时出错: ${error.message}`, '错误处理');
-        console.error('[服务器详情页] 加载服务器介绍时出错:', error);
-
-        // 显示错误信息
-        introContainer.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>无法加载服务器介绍</p>
-            </div>
-        `;
     }
 }
 
@@ -775,6 +787,140 @@ function createPlayerHistoryChart(historyData) {
         });
 
         log('服务器详情页', '使用真实数据创建图表', '图表渲染');
+    }
+}
+
+// 获取服务器文章
+async function fetchServerArticle(uuid) {
+    try {
+        // 直接使用API地址，避免API_CONFIG未定义的问题
+        const apiUrl = "https://api.bdsgp.cn";
+        const url = `${apiUrl}/article?uuid=${uuid}`;
+
+        console.log('服务器详情页 - 尝试获取服务器文章:', url);
+        log('服务器详情页', `尝试获取服务器文章: ${url}`, 'API调用');
+
+        const response = await fetch(url, {
+            method: 'GET'
+        });
+
+        console.log('服务器详情页 - API响应状态:', response.status);
+        log('服务器详情页', `API响应状态: ${response.status}`, 'API响应');
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('服务器详情页 - API响应数据:', data);
+            log('服务器详情页', `API响应数据: ${JSON.stringify(data)}`, 'API响应');
+
+            if (data.status === 'success' && data.data) {
+                console.log('服务器详情页 - 返回文章内容:', data.data);
+                return data.data;
+            } else {
+                console.log('服务器详情页 - API返回状态不是success或没有data字段');
+                log('服务器详情页', `API返回状态不是success或没有data字段`, 'API响应');
+            }
+        } else {
+            console.log('服务器详情页 - API响应不成功，状态码:', response.status);
+            log('服务器详情页', `API响应不成功，状态码: ${response.status}`, 'API响应');
+        }
+        return null;
+    } catch (error) {
+        console.log('服务器详情页 - 获取服务器文章失败:', error);
+        log('服务器详情页', `获取服务器文章失败: ${error}`, '错误');
+        return null;
+    }
+}
+
+// 显示服务器文章
+async function displayServerArticle(uuid) {
+    console.log('服务器详情页 - 开始显示服务器文章，UUID:', uuid);
+    log('服务器详情页', `开始显示服务器文章，UUID: ${uuid}`, '文章显示');
+
+    if (!DOM_ELEMENTS.serverArticleContainer) {
+        console.log('服务器详情页 - 找不到文章容器元素');
+        log('服务器详情页', '找不到文章容器元素', '错误');
+        return;
+    }
+
+    console.log('服务器详情页 - 文章容器元素:', DOM_ELEMENTS.serverArticleContainer);
+
+    // 显示加载状态
+    DOM_ELEMENTS.serverArticleContainer.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+    `;
+    console.log('服务器详情页 - 已显示加载状态');
+    log('服务器详情页', '已显示加载状态', '文章显示');
+
+    try {
+        // 获取服务器文章
+        console.log('服务器详情页 - 开始获取服务器文章');
+        log('服务器详情页', '开始获取服务器文章', '文章显示');
+        const articleContent = await fetchServerArticle(uuid);
+        console.log('服务器详情页 - 获取到的文章内容:', articleContent ? '有内容' : '无内容');
+        log('服务器详情页', `获取到的文章内容: ${articleContent ? '有内容' : '无内容'}`, '文章显示');
+
+        if (articleContent) {
+            // 显示文章内容
+            console.log('服务器详情页 - 显示文章内容');
+            log('服务器详情页', '显示文章内容', '文章显示');
+
+            // 检查marked库是否已加载
+            if (typeof marked !== 'undefined') {
+                console.log('服务器详情页 - 使用marked解析markdown');
+                try {
+                    // 使用marked解析markdown
+                    const htmlContent = marked.parse(articleContent);
+                    console.log('服务器详情页 - markdown解析成功');
+
+                    DOM_ELEMENTS.serverArticleContainer.innerHTML = `
+                        <div class="article-content markdown-body">
+                            ${htmlContent}
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('服务器详情页 - markdown解析失败:', error);
+                    // 如果解析失败，显示原始内容
+                    DOM_ELEMENTS.serverArticleContainer.innerHTML = `
+                        <div class="article-content">
+                            ${articleContent}
+                        </div>
+                    `;
+                }
+            } else {
+                console.log('服务器详情页 - marked库未加载，显示原始内容');
+                // 如果marked库未加载，显示原始内容
+                DOM_ELEMENTS.serverArticleContainer.innerHTML = `
+                    <div class="article-content">
+                        ${articleContent}
+                    </div>
+                `;
+            }
+            console.log('服务器详情页 - 文章内容已更新到DOM');
+        } else {
+            // 显示无文章提示
+            console.log('服务器详情页 - 显示无文章提示');
+            log('服务器详情页', '显示无文章提示', '文章显示');
+            DOM_ELEMENTS.serverArticleContainer.innerHTML = `
+                <div class="no-article-message">
+                    <i class="fas fa-file-alt"></i>
+                    <p>该服务器暂无文章内容</p>
+                </div>
+            `;
+            console.log('服务器详情页 - 无文章提示已更新到DOM');
+        }
+    } catch (error) {
+        // 显示错误提示
+        console.log('服务器详情页 - 显示文章时出错:', error);
+        log('服务器详情页', `显示文章时出错: ${error}`, '错误');
+        DOM_ELEMENTS.serverArticleContainer.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>加载文章失败，请稍后重试</p>
+            </div>
+        `;
+        console.log('服务器详情页 - 错误提示已更新到DOM');
     }
 }
 

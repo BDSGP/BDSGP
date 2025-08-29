@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/main.css">
     <link rel="icon" href="./favicon.png" type="image/x-icon">
+    <!-- 添加marked库的CDN链接，用于解析markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 添加github-markdown-css的CDN链接，用于markdown样式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
     <style>
         @font-face {
             font-family: "Unifont";
@@ -634,6 +638,69 @@
             opacity: 1;
             transform: translateX(-50%) translateY(5px);
         }
+
+        /* Markdown内容样式 */
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 20px;
+            color: var(--text-color);
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+        }
+
+        .markdown-body > *:first-child {
+            margin-top: 0 !important;
+        }
+
+        .markdown-body > *:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* 暗色模式下的markdown样式调整 */
+        body.dark-mode .markdown-body {
+            color: #c9d1d9;
+            background-color: var(--card-bg);
+        }
+
+        body.dark-mode .markdown-body h1,
+        body.dark-mode .markdown-body h2,
+        body.dark-mode .markdown-body h3,
+        body.dark-mode .markdown-body h4,
+        body.dark-mode .markdown-body h5,
+        body.dark-mode .markdown-body h6 {
+            color: #c9d1d9;
+        }
+
+        body.dark-mode .markdown-body a {
+            color: #58a6ff;
+        }
+
+        body.dark-mode .markdown-body code {
+            color: #e6edf3;
+            background-color: #6e768166;
+        }
+
+        body.dark-mode .markdown-body pre {
+            background-color: #161b22;
+        }
+
+        body.dark-mode .markdown-body blockquote {
+            color: #8b949e;
+            border-left: 4px solid #30363d;
+        }
+
+        body.dark-mode .markdown-body table tr {
+            background-color: #161b22;
+            border-color: #30363d;
+        }
+
+        body.dark-mode .markdown-body table th,
+        body.dark-mode .markdown-body table td {
+            border-color: #30363d;
+        }
     </style>
 </head>
 
@@ -705,6 +772,10 @@
                             <span class="status-dot" id="statusDot"></span>
                             <span id="serverStatus">加载中...</span>
                         </div>
+                        <h3 style="margin-top: 2rem;">服务器MOTD</h3>
+                        <div class="server-motd-content" id="serverMotd">
+                            加载中...
+                        </div>
                         <div id="serverDescription" class="server-description-content">
                             服务器描述加载中...
                         </div>
@@ -721,11 +792,11 @@
 
                 <!-- 选项卡 -->
                 <div class="server-detail-tabs">
-                    <button class="tab-button active tooltip" data-tab="overview" data-tooltip="查看服务器基本信息">
-                        <i class="fas fa-info-circle"></i> 概览
+                    <button class="tab-button active tooltip" data-tab="article" data-tooltip="查看服务器文章">
+                        <i class="fas fa-file-alt"></i> 概览
                     </button>
-                    <button class="tab-button tooltip" data-tab="stats" data-tooltip="查看服务器介绍">
-                        <i class="fas fa-info-circle"></i> 概览
+                    <button class="tab-button tooltip" data-tab="overview" data-tooltip="查看服务器基本信息">
+                        <i class="fas fa-info-circle"></i> 服务器信息
                     </button>
                     <button class="tab-button tooltip" data-tab="history" data-tooltip="查看历史在线人数">
                         <i class="fas fa-history"></i> 历史在线人数
@@ -733,7 +804,7 @@
                 </div>
 
                 <!-- 选项卡内容 -->
-                <div class="tab-content active" id="overview-tab">
+                <div class="tab-content" id="overview-tab">
                     <h2>服务器信息</h2>
                     <div class="server-stats-grid">
                         <div class="stat-card">
@@ -767,10 +838,14 @@
                             <div class="stat-label">最后更新</div>
                         </div>
                     </div>
+                </div>
 
-                    <h3 style="margin-top: 2rem;">服务器MOTD</h3>
-                    <div class="server-motd-content" id="serverMotd">
-                        加载中...
+                <div class="tab-content active" id="article-tab">
+                    <h2>服务器文章</h2>
+                    <div id="server-article-container" class="markdown-container">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
 
